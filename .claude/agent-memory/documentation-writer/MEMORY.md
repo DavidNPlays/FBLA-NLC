@@ -1,0 +1,1 @@
+- [Project Codebase Structure](project-codebase-structure.md) — module namespaces, Firestore collections, business object shape, and architectural rules for Byte-Sized Business Boost

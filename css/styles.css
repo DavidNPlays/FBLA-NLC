@@ -834,6 +834,24 @@ img {
   padding: 30px 10px;
 }
 
+/* ===================== Help modal ===================== */
+.help-list {
+  margin: 18px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.help-list li {
+  color: var(--color-text-soft);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.help-list strong {
+  color: var(--color-text);
+}
+
 /* ===================== Toast ===================== */
 .toast {
   position: fixed;

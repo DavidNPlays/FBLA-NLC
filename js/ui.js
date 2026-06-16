@@ -542,12 +542,13 @@
   }
 
   /**
-   * Close all modals and restore page scrolling.
+   * Close every open modal and restore page scrolling.
    * @returns {void}
    */
   function closeModals() {
-    elements.businessModal.hidden = true;
-    elements.favoritesModal.hidden = true;
+    document.querySelectorAll(".modal").forEach(function (modal) {
+      modal.hidden = true;
+    });
     document.body.style.overflow = "";
     activeBusiness = null;
   }
@@ -573,6 +574,8 @@
       favoritesList: document.getElementById("favorites-list"),
       favoritesButton: document.getElementById("favorites-button"),
       favoritesCount: document.getElementById("favorites-count"),
+      helpButton: document.getElementById("help-button"),
+      helpModal: document.getElementById("help-modal"),
       signInButton: document.getElementById("sign-in-button"),
       signOutButton: document.getElementById("sign-out-button"),
       userChip: document.getElementById("user-chip"),
@@ -598,6 +601,11 @@
       if (handlers.onSignOut) {
         handlers.onSignOut();
       }
+    });
+
+    // Help button opens the how-to modal.
+    elements.helpButton.addEventListener("click", function () {
+      openModal(elements.helpModal);
     });
 
     // Favorites button + export/print.

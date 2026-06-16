@@ -30,6 +30,10 @@
         </div>
 
         <div class="header-actions">
+          <button id="help-button" class="button button--ghost" type="button" aria-label="How to use this app">
+            <span aria-hidden="true">?</span>
+            <span>Help</span>
+          </button>
           <button id="favorites-button" class="button button--ghost" type="button">
             <span aria-hidden="true">★</span>
             <span>Favorites</span>
@@ -160,6 +164,65 @@
             </div>
           </div>
           <div id="favorites-list" class="favorites-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== Help / how-to modal ===================== -->
+    <div id="help-modal" class="modal" hidden>
+      <div class="modal__overlay" data-close-modal></div>
+      <div
+        class="modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-title"
+      >
+        <button class="modal__close" type="button" data-close-modal aria-label="Close">
+          ×
+        </button>
+        <div class="modal__body">
+          <h2 id="help-title">How to use Byte-Sized Business Boost</h2>
+          <p style="margin-top:8px;color:var(--color-text-soft);">
+            Discover and support local businesses in Lake Forest, Illinois.
+          </p>
+          <ul class="help-list">
+            <li>
+              <strong>Search</strong> — type in the search box to filter businesses
+              instantly by name, category, or keyword.
+            </li>
+            <li>
+              <strong>Filter by category</strong> — use the Category dropdown to
+              show only one type of business.
+            </li>
+            <li>
+              <strong>Sort</strong> — order results by Featured, Top rated, or
+              Name (A–Z).
+            </li>
+            <li>
+              <strong>View details</strong> — open any business to see its hours,
+              contact info, deal, and reviews.
+            </li>
+            <li>
+              <strong>Sign in with Google</strong> — required before writing
+              anything. Google’s 2-step verification keeps out bots.
+            </li>
+            <li>
+              <strong>Reviews &amp; ratings</strong> — once signed in, leave a star
+              rating and review on any business.
+            </li>
+            <li>
+              <strong>Bookmark favorites</strong> — tap the ☆ on a card to save it.
+              Saved businesses appear under Favorites.
+            </li>
+            <li>
+              <strong>Claim deals</strong> — open a business and claim its deal to
+              reveal the coupon code.
+            </li>
+            <li>
+              <strong>Export &amp; print</strong> — from Favorites, export or print
+              a report of your saved businesses.
+            </li>
+          </ul>
         </div>
       </div>
     </div>

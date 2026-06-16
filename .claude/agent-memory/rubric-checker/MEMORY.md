@@ -1,0 +1,3 @@
+- [Project Architecture](project-architecture.md) — confirmed file responsibilities, isolation boundaries, and naming conventions
+- [Recurring Violations](recurring-violations.md) — help system is missing (HIGH); all other rubric items confirmed passing
+- [User Profile](user-profile.md) — David Nguyen, FBLA student, Byte-Sized Business Boost, 2025-2026 season
