@@ -1,2 +1,0 @@
-- [Project Architecture](project-architecture.md) — module boundaries, global namespaces, and which file owns Firestore/Auth
-- [Coding Standards](coding-standards.md) — ES5 var style, JSDoc requirements, recurring naming issues to watch
