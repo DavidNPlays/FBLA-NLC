@@ -1,0 +1,2 @@
+- [Project Security Posture](project-security-posture.md) — Firestore rules structure, auth-guard patterns, and all known gaps from initial audit
+- [User Profile](user-profile.md) — David Nguyen, FBLA student, vanilla JS + Firebase, competition context

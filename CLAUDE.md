@@ -9,6 +9,12 @@ Helps users find, review, bookmark, and get deals from small local businesses.
 - No build step — app runs by opening index.html directly in a browser
 - Firebase Hosting for live deployment (required for Google Sign-In to work)
 
+## Git Workflow
+- When asked to "push to github" or similar, automatically: stage all changes,
+  write a concise descriptive commit message based on what changed, commit,
+  and push to the current branch — without asking for confirmation on the
+  message wording.
+
 ## Project Structure
 - index.html        → app shell and Firebase SDK imports
 - css/styles.css    → all styling

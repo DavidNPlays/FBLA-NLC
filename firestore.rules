@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Firestore security rules for Byte-Sized Business Boost.
+// Principle: anyone may READ reviews (so browsing works without signing in),
+// but every WRITE requires an authenticated user, and users may only create
+// records stamped with their own uid. All collections deny anything not
+// explicitly allowed below.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Reviews: public read; signed-in users may create their own review only.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.businessId is string
+        && request.resource.data.businessId.size() > 0
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000;
+      // Reviews cannot be edited or deleted from the client.
+      allow update, delete: if false;
+    }
+
+    // Bookmarks: each user may read and manage only their own bookmarks. The
+    // document id must be "{uid}_{businessId}" so users cannot create records
+    // at arbitrary ids.
+    match /bookmarks/{bookmarkId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create, update: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && bookmarkId == request.auth.uid + "_" + request.resource.data.businessId;
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Deal claims: each user may read and create only their own claims, at the
+    // document id "{uid}_{businessId}". A claim is immutable once created.
+    match /dealClaims/{claimId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && claimId == request.auth.uid + "_" + request.resource.data.businessId;
+      allow update, delete: if false;
+    }
+  }
+}
