@@ -11,12 +11,16 @@
       "hours": "Mon-Fri 6:30am-6pm, Sat-Sun 7am-5pm",
       "icon": "☕",
       "priceLevel": "$$",
-      "seedRating": { "sum": 41, "count": 9 },
+      "seedRating": {
+        "sum": 41,
+        "count": 9
+      },
       "deal": {
         "title": "Free pastry with any large coffee",
         "code": "SQUARE-PASTRY",
         "description": "Show this code at the register to get a free pastry of the day with the purchase of any large coffee. One per customer per visit."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "deerpath-books",
@@ -29,12 +33,16 @@
       "hours": "Mon-Sat 10am-7pm, Sun 11am-4pm",
       "icon": "📚",
       "priceLevel": "$$",
-      "seedRating": { "sum": 47, "count": 10 },
+      "seedRating": {
+        "sum": 47,
+        "count": 10
+      },
       "deal": {
         "title": "15% off any one book",
         "code": "READ-LOCAL15",
         "description": "Take 15% off any single book in store. Cannot be combined with other offers or applied to gift cards."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "western-thread",
@@ -47,12 +55,16 @@
       "hours": "Mon-Sat 10am-6pm, Sun closed",
       "icon": "👗",
       "priceLevel": "$$$",
-      "seedRating": { "sum": 33, "count": 8 },
+      "seedRating": {
+        "sum": 33,
+        "count": 8
+      },
       "deal": {
         "title": "$20 off purchases of $100+",
         "code": "THREAD20",
         "description": "Spend $100 or more and take $20 off your total. Valid on regular-priced items only."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "bank-lane-bistro",
@@ -65,12 +77,16 @@
       "hours": "Tue-Sun 11am-9pm, Mon closed",
       "icon": "🍽️",
       "priceLevel": "$$$",
-      "seedRating": { "sum": 52, "count": 11 },
+      "seedRating": {
+        "sum": 52,
+        "count": 11
+      },
       "deal": {
         "title": "Complimentary dessert with two entrees",
         "code": "BISTRO-SWEET",
         "description": "Order two entrees and receive one complimentary dessert to share. Dine-in only, after 5pm."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "forest-greens",
@@ -83,12 +99,16 @@
       "hours": "Mon-Sat 7am-7pm, Sun 8am-4pm",
       "icon": "🥤",
       "priceLevel": "$$",
-      "seedRating": { "sum": 38, "count": 9 },
+      "seedRating": {
+        "sum": 38,
+        "count": 9
+      },
       "deal": {
         "title": "Buy one smoothie, get one half off",
         "code": "GREENS-BOGO",
         "description": "Buy any smoothie and get a second of equal or lesser value at half price. Valid weekdays before noon."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "telegraph-tune",
@@ -101,12 +121,16 @@
       "hours": "Mon-Fri 7:30am-6pm, Sat 8am-2pm",
       "icon": "🔧",
       "priceLevel": "$$",
-      "seedRating": { "sum": 44, "count": 10 },
+      "seedRating": {
+        "sum": 44,
+        "count": 10
+      },
       "deal": {
         "title": "$15 off any oil change",
         "code": "TUNE-OIL15",
         "description": "Present this code for $15 off a standard or synthetic oil change. One per vehicle per visit."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "westleigh-wellness",
@@ -119,12 +143,16 @@
       "hours": "Tue-Sat 9am-7pm, Sun-Mon closed",
       "icon": "💆",
       "priceLevel": "$$$",
-      "seedRating": { "sum": 49, "count": 11 },
+      "seedRating": {
+        "sum": 49,
+        "count": 11
+      },
       "deal": {
         "title": "20% off your first facial",
         "code": "WELL-FIRST20",
         "description": "New clients receive 20% off any facial treatment. Booking required; mention code when scheduling."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "everett-fitness",
@@ -137,12 +165,16 @@
       "hours": "Mon-Fri 5am-10pm, Sat-Sun 7am-6pm",
       "icon": "🏋️",
       "priceLevel": "$$",
-      "seedRating": { "sum": 36, "count": 9 },
+      "seedRating": {
+        "sum": 36,
+        "count": 9
+      },
       "deal": {
         "title": "One free week trial pass",
         "code": "EVERETT-WEEK",
         "description": "Enjoy seven days of full gym and class access at no cost. New members only, one per person."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "lakeside-pizza",
@@ -155,12 +187,16 @@
       "hours": "Mon-Sun 11am-10pm",
       "icon": "🍕",
       "priceLevel": "$$",
-      "seedRating": { "sum": 45, "count": 10 },
+      "seedRating": {
+        "sum": 45,
+        "count": 10
+      },
       "deal": {
         "title": "Free order of garlic knots with any large pizza",
         "code": "LAKE-KNOTS",
         "description": "Add a free order of garlic knots when you buy any large pizza. Carryout and dine-in."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "deerpath-dental",
@@ -173,12 +209,16 @@
       "hours": "Mon-Thu 8am-5pm, Fri 8am-1pm",
       "icon": "🦷",
       "priceLevel": "$$$",
-      "seedRating": { "sum": 40, "count": 9 },
+      "seedRating": {
+        "sum": 40,
+        "count": 9
+      },
       "deal": {
         "title": "$49 new-patient cleaning & exam",
         "code": "DENTAL-NEW49",
         "description": "New patients receive a cleaning, exam, and x-rays for $49. Excludes additional treatment."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "market-square-toys",
@@ -191,12 +231,16 @@
       "hours": "Mon-Sat 10am-6pm, Sun 11am-4pm",
       "icon": "🧸",
       "priceLevel": "$$",
-      "seedRating": { "sum": 43, "count": 10 },
+      "seedRating": {
+        "sum": 43,
+        "count": 10
+      },
       "deal": {
         "title": "Buy two games, get one 50% off",
         "code": "TOYS-GAME50",
         "description": "Purchase two board games and take 50% off a third of equal or lesser value."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "north-shore-cleaners",
@@ -209,12 +253,16 @@
       "hours": "Mon-Fri 7am-7pm, Sat 8am-4pm",
       "icon": "👔",
       "priceLevel": "$$",
-      "seedRating": { "sum": 35, "count": 8 },
+      "seedRating": {
+        "sum": 35,
+        "count": 8
+      },
       "deal": {
         "title": "20% off your first dry-cleaning order",
         "code": "CLEAN-FIRST20",
         "description": "First-time customers save 20% on any dry-cleaning order. Excludes alterations."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "willow-bakery",
@@ -227,12 +275,16 @@
       "hours": "Tue-Sun 7am-4pm, Mon closed",
       "icon": "🥐",
       "priceLevel": "$$",
-      "seedRating": { "sum": 50, "count": 11 },
+      "seedRating": {
+        "sum": 50,
+        "count": 11
+      },
       "deal": {
         "title": "Free loaf of sourdough with $25 purchase",
         "code": "WILLOW-LOAF",
         "description": "Spend $25 or more and take home a free classic sourdough loaf while supplies last."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "lake-forest-flowers",
@@ -245,12 +297,16 @@
       "hours": "Mon-Sat 9am-6pm, Sun closed",
       "icon": "💐",
       "priceLevel": "$$$",
-      "seedRating": { "sum": 39, "count": 9 },
+      "seedRating": {
+        "sum": 39,
+        "count": 9
+      },
       "deal": {
         "title": "10% off any arrangement",
         "code": "BLOOM10",
         "description": "Take 10% off any floral arrangement in store or by phone order."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1487070183336-b863922373d4?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "scoops-creamery",
@@ -263,12 +319,16 @@
       "hours": "Mon-Sun 12pm-9pm",
       "icon": "🍦",
       "priceLevel": "$",
-      "seedRating": { "sum": 46, "count": 10 },
+      "seedRating": {
+        "sum": 46,
+        "count": 10
+      },
       "deal": {
         "title": "Free topping on any sundae",
         "code": "SCOOPS-TOP",
         "description": "Add any one topping to your sundae for free. One per customer per visit."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "ridge-hardware",
@@ -281,12 +341,16 @@
       "hours": "Mon-Sat 8am-7pm, Sun 9am-5pm",
       "icon": "🔨",
       "priceLevel": "$$",
-      "seedRating": { "sum": 42, "count": 10 },
+      "seedRating": {
+        "sum": 42,
+        "count": 10
+      },
       "deal": {
         "title": "$10 off purchases of $50+",
         "code": "RIDGE10",
         "description": "Spend $50 or more and take $10 off your total. Excludes power tools and grills."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "harborview-yoga",
@@ -299,12 +363,16 @@
       "hours": "Mon-Sun 6am-8pm",
       "icon": "🧘",
       "priceLevel": "$$",
-      "seedRating": { "sum": 48, "count": 11 },
+      "seedRating": {
+        "sum": 48,
+        "count": 11
+      },
       "deal": {
         "title": "First class free",
         "code": "YOGA-FREE1",
         "description": "Your first drop-in class is on us. New students only; reserve a spot in advance."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1588286840104-8957b019727f?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "cornerstone-coffee",
@@ -317,12 +385,16 @@
       "hours": "Mon-Fri 6am-7pm, Sat-Sun 7am-6pm",
       "icon": "🫘",
       "priceLevel": "$$",
-      "seedRating": { "sum": 51, "count": 11 },
+      "seedRating": {
+        "sum": 51,
+        "count": 11
+      },
       "deal": {
         "title": "$2 off any bag of whole-bean coffee",
         "code": "CORNER-BEAN2",
         "description": "Take $2 off any retail bag of our house-roasted whole-bean coffee."
-      }
+      },
+      "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=70&auto=format&fit=crop"
     }
   ]
 }
