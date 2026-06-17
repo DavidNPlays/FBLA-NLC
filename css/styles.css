@@ -530,6 +530,15 @@ img {
   padding: 20px;
 }
 
+/*
+  When the `hidden` attribute is present the modal must stay hidden. A class
+  selector alone (.modal) would otherwise override the browser's default
+  [hidden] rule, so this more specific selector keeps closed modals invisible.
+*/
+.modal[hidden] {
+  display: none;
+}
+
 .modal__overlay {
   position: absolute;
   inset: 0;
