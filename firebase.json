@@ -6,6 +6,7 @@
       ".git/**",
       ".claude/**",
       ".firebase/**",
+      ".playwright-mcp/**",
       "node_modules/**",
       "**/node_modules/**",
       "firebase.json",
