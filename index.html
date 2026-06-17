@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  index.html — Application shell for Byte-Sized Business Boost.
+  index.html — Application shell for BizWiz.
   Responsibility: define the page structure, load the Firebase SDK (via CDN
   compat builds, no build step required), and load the application's JavaScript
   modules in dependency order. This file contains no business logic itself.
@@ -11,48 +11,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Discover, review, bookmark, and get deals from small local businesses in Lake Forest, Illinois."
+      content="BizWiz — discover, review, bookmark, and get deals from small local businesses in Lake Forest, Illinois."
     />
-    <title>Byte-Sized Business Boost — Lake Forest, IL</title>
+    <title>BizWiz — Local Business Directory · Lake Forest, IL</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏪%3C/text%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://www.gstatic.com" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <!-- ===================== Header / top navigation ===================== -->
+    <!-- ===================== Top navigation (near-black) ===================== -->
     <header class="site-header">
       <div class="site-header__inner">
         <div class="brand">
-          <span class="brand__mark" aria-hidden="true">◆</span>
-          <div class="brand__text">
-            <h1 class="brand__name">Byte-Sized Business Boost</h1>
-            <p class="brand__tagline">Local businesses in Lake Forest, Illinois</p>
-          </div>
+          <span class="wordmark brand__name">
+            <span class="wordmark__biz">Biz</span>Wiz
+          </span>
         </div>
 
         <div class="header-actions">
-          <button id="help-button" class="button button--ghost" type="button" aria-label="How to use this app">
-            <span aria-hidden="true">?</span>
-            <span>Help</span>
+          <span class="location-tag eyebrow">Lake Forest, IL</span>
+          <button id="help-button" class="button button--nav button--small" type="button" aria-label="How to use this app">
+            ? Help
           </button>
-          <button id="favorites-button" class="button button--ghost" type="button">
+          <button id="favorites-button" class="button button--nav button--small" type="button">
             <span aria-hidden="true">★</span>
             <span>Favorites</span>
-            <span id="favorites-count" class="pill" hidden>0</span>
+            <span id="favorites-count" class="pill-count" hidden>0</span>
           </button>
 
-          <!-- Auth area: swapped between signed-out and signed-in states by auth.js/ui.js -->
+          <!-- Auth area: swapped between signed-out and signed-in by auth.js/ui.js -->
           <div id="auth-area" class="auth-area">
-            <button id="sign-in-button" class="button button--primary" type="button">
+            <button id="sign-in-button" class="button button--secondary button--small" type="button">
               Sign in with Google
             </button>
             <div id="user-chip" class="user-chip" hidden>
               <img id="user-avatar" class="user-chip__avatar" alt="" />
               <span id="user-name" class="user-chip__name"></span>
-              <button id="sign-out-button" class="button button--ghost button--small" type="button">
+              <button id="sign-out-button" class="button button--nav button--small" type="button">
                 Sign out
               </button>
             </div>
@@ -61,49 +60,48 @@
       </div>
     </header>
 
+    <!-- ===================== Hero (gradient banner) ===================== -->
+    <section class="hero">
+      <p class="hero__eyebrow eyebrow">Local Business Directory</p>
+      <h1 class="hero__title">Discover local businesses in Lake Forest</h1>
+      <p class="hero__subtitle">
+        Browse small businesses around Market Square and beyond. Read reviews,
+        save favorites, and claim exclusive deals.
+      </p>
+      <form id="search-form" class="hero__search" role="search">
+        <label class="visually-hidden" for="search-input">Search businesses</label>
+        <input
+          id="search-input"
+          class="hero__search-input"
+          type="search"
+          placeholder="Search by name, category, or keyword…"
+          autocomplete="off"
+        />
+        <button class="button button--primary" type="submit">Search</button>
+      </form>
+    </section>
+
+    <!-- ===================== Floating filter / sort bar ===================== -->
+    <section class="controls" aria-label="Filter and sort businesses">
+      <div
+        id="category-filters"
+        class="filters"
+        role="group"
+        aria-label="Filter by category"
+      >
+        <!-- Category pill buttons injected by ui.js -->
+      </div>
+      <div class="sort-field">
+        <label class="sort-field__label" for="sort-select">Sort</label>
+        <select id="sort-select" class="sort-select">
+          <option value="featured">Featured</option>
+          <option value="rating">Top rated</option>
+          <option value="name">Name (A–Z)</option>
+        </select>
+      </div>
+    </section>
+
     <main class="page">
-      <!-- ===================== Intro / hero ===================== -->
-      <section class="hero reveal">
-        <h2 class="hero__title">Support local. Discover Lake Forest.</h2>
-        <p class="hero__subtitle">
-          Browse small businesses around Market Square and beyond. Read reviews,
-          save favorites, and claim exclusive deals.
-        </p>
-      </section>
-
-      <!-- ===================== Controls: search / filter / sort ===================== -->
-      <section class="controls reveal" aria-label="Search and filter businesses">
-        <div class="controls__search">
-          <span class="controls__search-icon" aria-hidden="true">⌕</span>
-          <label class="visually-hidden" for="search-input">Search businesses</label>
-          <input
-            id="search-input"
-            class="controls__search-input"
-            type="search"
-            placeholder="Search by name, category, or keyword…"
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="controls__filters">
-          <div class="field">
-            <label class="field__label" for="category-filter">Category</label>
-            <select id="category-filter" class="field__select">
-              <option value="all">All categories</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="field__label" for="sort-select">Sort by</label>
-            <select id="sort-select" class="field__select">
-              <option value="featured">Featured</option>
-              <option value="rating">Top rated</option>
-              <option value="name">Name (A–Z)</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
       <p id="results-summary" class="results-summary" aria-live="polite"></p>
 
       <!-- ===================== Business results grid ===================== -->
@@ -118,10 +116,14 @@
       </p>
     </main>
 
+    <!-- ===================== Footer (near-black) ===================== -->
     <footer class="site-footer">
-      <p>
-        Byte-Sized Business Boost · FBLA Coding &amp; Programming 2025–2026 ·
-        Lake Forest, IL
+      <p class="wordmark"><span class="wordmark__biz">Biz</span>Wiz</p>
+      <p class="site-footer__tagline eyebrow">
+        Supporting local business in Lake Forest, Illinois
+      </p>
+      <p class="site-footer__tagline eyebrow">
+        FBLA Coding &amp; Programming 2025–2026
       </p>
     </footer>
 
@@ -137,7 +139,7 @@
         <button class="modal__close" type="button" data-close-modal aria-label="Close">
           ×
         </button>
-        <div id="modal-body" class="modal__body">
+        <div id="modal-body">
           <!-- Filled in by ui.js when a business is opened -->
         </div>
       </div>
@@ -159,7 +161,7 @@
           <div class="favorites-header">
             <h2 id="favorites-title">Your favorites</h2>
             <div class="favorites-header__actions">
-              <button id="print-favorites" class="button button--ghost button--small" type="button">
+              <button id="print-favorites" class="button button--secondary button--small" type="button">
                 Print
               </button>
               <button id="export-favorites" class="button button--primary button--small" type="button">
@@ -185,8 +187,8 @@
           ×
         </button>
         <div class="modal__body">
-          <h2 id="help-title">How to use Byte-Sized Business Boost</h2>
-          <p style="margin-top:8px;color:var(--color-text-soft);">
+          <h2 id="help-title">How to use BizWiz</h2>
+          <p style="margin-top: 8px; color: var(--color-body);">
             Discover and support local businesses in Lake Forest, Illinois.
           </p>
           <ul class="help-list">
@@ -195,8 +197,8 @@
               instantly by name, category, or keyword.
             </li>
             <li>
-              <strong>Filter by category</strong> — use the Category dropdown to
-              show only one type of business.
+              <strong>Filter by category</strong> — tap a category pill to show only
+              that type of business.
             </li>
             <li>
               <strong>Sort</strong> — order results by Featured, Top rated, or

@@ -1,7 +1,9 @@
-# Byte-Sized Business Boost — Program Documentation
+# BizWiz — Program Documentation
 
 **FBLA Coding & Programming 2025–2026**
 Lake Forest, Illinois
+
+*(Formerly developed under the working title "Byte-Sized Business Boost.")*
 
 ---
 
@@ -9,26 +11,27 @@ Lake Forest, Illinois
 
 1. [Project Overview & Purpose](#1-project-overview--purpose)
 2. [Feature List](#2-feature-list)
-3. [Technology Stack](#3-technology-stack)
-4. [Architecture & File Responsibilities](#4-architecture--file-responsibilities)
-5. [Data Model](#5-data-model)
-6. [Security Model](#6-security-model)
-7. [Setup & Configuration](#7-setup--configuration)
-8. [How to Run and Deploy](#8-how-to-run-and-deploy)
-9. [FBLA Rubric Checklist](#9-fbla-rubric-checklist)
-10. [Function Reference](#10-function-reference)
+3. [Design System](#3-design-system)
+4. [Technology Stack](#4-technology-stack)
+5. [Architecture & File Responsibilities](#5-architecture--file-responsibilities)
+6. [Data Model](#6-data-model)
+7. [Security Model](#7-security-model)
+8. [Setup & Configuration](#8-setup--configuration)
+9. [How to Run and Deploy](#9-how-to-run-and-deploy)
+10. [FBLA Rubric Checklist](#10-fbla-rubric-checklist)
+11. [Function Reference](#11-function-reference)
 
 ---
 
 ## 1. Project Overview & Purpose
 
-**Byte-Sized Business Boost** is a local-business discovery web application built for Lake Forest, Illinois. It helps residents and visitors find, explore, review, bookmark, and claim exclusive deals from small local businesses — primarily around the historic Market Square district.
+**BizWiz** is a local-business discovery web application built for Lake Forest, Illinois. It helps residents and visitors find, explore, review, bookmark, and claim exclusive deals from small local businesses — primarily around the historic Market Square district.
 
 The app was created as an FBLA Coding & Programming project for the 2025–2026 school year. Its goal is to drive community engagement with local commerce by giving businesses a digital presence and giving users the tools to interact with those businesses meaningfully.
 
 ### What the app does
 
-- Presents 18 pre-loaded local businesses with details including address, phone, hours, category, price level, and a description.
+- Presents 18 pre-loaded local businesses with details including a photo, address, phone, hours, category, price level, and a description.
 - Lets any visitor (signed in or not) search, filter by category, and sort the business listing.
 - Requires Google Sign-In before any write action — submitting a review, saving a bookmark, or claiming a deal — which provides bot prevention through Google's own account security and two-step verification.
 - Stores reviews, bookmarks, and deal claims in Firebase Firestore with security rules that enforce ownership and data integrity at the server level.
@@ -42,21 +45,21 @@ Each feature below maps directly to user-facing behavior and to the FBLA topic r
 
 ### Real-Time Search
 
-A search bar in the controls section filters the visible business grid as the user types — no submit button is needed. The search matches against the business name, category, description, and address simultaneously. An empty search shows all businesses.
+A search field in the hero banner filters the visible business grid as the user types — no submit button is required (the visible "Search" button simply prevents a page reload when pressed or when Enter is hit). The search matches against the business name, category, description, and address simultaneously. An empty search shows all businesses.
 
-**User flow:** Type any keyword (e.g., "coffee", "pizza", "Deerpath") in the search field. The grid updates instantly.
+**User flow:** Type any keyword (e.g., "coffee", "pizza", "Deerpath") in the hero search field. The grid updates instantly.
 
 ### Category Filter
 
-A dropdown menu lists every category present in the catalog (populated dynamically from the data, sorted A–Z). Selecting a category narrows the grid to matching businesses. The search and category filters work together — both constraints apply at once.
+A row of pill-shaped buttons sits in the floating controls bar below the hero, one pill per category plus an "All" pill, generated dynamically from the catalog (sorted A–Z). Tapping a pill narrows the grid to matching businesses and highlights the active pill. The search and category filters work together — both constraints apply at once.
 
-**Categories in the current catalog:** Books & Gifts, Cafes & Bakeries, Fitness, Health & Beauty, Restaurant, Retail & Boutiques, Services.
+**Categories in the current catalog:** Books & Gifts, Cafes & Bakeries, Fitness, Health & Beauty, Restaurants, Retail & Boutiques, Services.
 
-**User flow:** Select a category from the "Category" dropdown. The grid filters immediately.
+**User flow:** Tap a category pill (e.g., "Restaurants") in the controls bar. The grid filters immediately and the pill becomes highlighted.
 
 ### Sort by Rating
 
-A "Sort by" dropdown provides three options:
+A "Sort" dropdown (unchanged from a dropdown control) sits beside the category pills and provides three options:
 
 | Option | Behavior |
 |--------|----------|
@@ -66,7 +69,7 @@ A "Sort by" dropdown provides three options:
 
 Average ratings combine each business's seed rating (pre-loaded in `businesses.json`) with any user-submitted reviews stored in Firestore. Businesses with more reviews and higher ratings rise to the top when "Top rated" is selected.
 
-**User flow:** Select "Top rated" from the "Sort by" dropdown.
+**User flow:** Select "Top rated" from the "Sort" dropdown.
 
 ### Reviews and Star Ratings
 
@@ -78,9 +81,9 @@ Reviews cannot be edited or deleted from the client (enforced by Firestore secur
 
 ### Bookmarks / Favorites
 
-Signed-in users can bookmark any business by clicking the star (☆) on its card. Bookmarked businesses show a filled star (★). The favorites count badge in the header updates in real time. Clicking the "Favorites" button opens a modal listing all saved businesses, where each can be removed individually.
+Signed-in users can bookmark any business by clicking the star (☆) button overlaid on its card photo. Bookmarked businesses show a filled star (★). The favorites count badge in the header updates in real time. Clicking the "Favorites" button opens a modal listing all saved businesses (with thumbnails), where each can be removed individually.
 
-**User flow:** Click ☆ on a card to save it. Click "Favorites" in the header to view the list.
+**User flow:** Click ☆ on a card's photo to save it. Click "Favorites" in the header to view the list.
 
 ### Deals and Coupons
 
@@ -100,19 +103,69 @@ All write actions (reviews, bookmarks, deal claims) require the user to sign in 
 
 **User flow:** Click "Sign in with Google" in the header. A Google popup appears. After authenticating, the header shows the user's name and avatar.
 
+### Help Modal
+
+A "? Help" button in the header opens a how-to modal summarizing search, filtering, sorting, viewing details, signing in, reviewing, bookmarking, claiming deals, and exporting/printing — a quick-reference guide for first-time visitors and judges.
+
+**User flow:** Click "? Help" in the header.
+
 ---
 
-## 3. Technology Stack
+## 3. Design System
+
+BizWiz follows a single, consistent visual language referred to internally as the **BizWiz design system**. It is implemented entirely in `css/styles.css` using CSS custom properties (design tokens) defined on `:root`.
+
+### Color palette
+
+| Token | Value | Used for |
+|-------|-------|----------|
+| `--color-dark` | `rgba(0, 0, 0, 0.9)` (near-black) | Top navigation bar, footer, primary buttons |
+| `--color-lavender` | `#d1d9f7` | Badges, info-card borders, secondary buttons |
+| `--color-periwinkle` | `#6a82d8` | Active/hover filter pills, links, focus outlines |
+| `--color-accent-pale` | `#a7b3de` | The italic "Biz" half of the wordmark |
+| `--color-gold` | `#ffb400` | Star ratings, review-card borders — reserved exclusively for ratings/reviews |
+| `--color-cream-gold` | `#ffedbe` | Rating text displayed over photo heroes |
+| `--color-surface` | `#ffffff` | Cards, modals, and the main content area |
+
+The page body sits on a near-white background (`--color-bg: #fffffd`) so that the near-black header and footer bookend a bright white content area, with the hero's blue/lavender gradient (`linear-gradient(135deg, #81a2ff, #e9edf9)`) bridging the two.
+
+### Shape and depth
+
+- **Pill shapes everywhere:** every button, badge, filter, and the sort dropdown uses `--radius-pill: 22px`, giving the whole UI a soft, rounded, consistent silhouette.
+- **Card and modal corners:** `--radius-card: 10px` for business cards/photos, `--radius-card-lg: 20px` for modals, info cards, and the floating controls bar.
+- **Soft shadows:** a layered shadow scale (`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-bar`) gives buttons, cards, and modals a sense of depth without harsh borders.
+- **Scale-on-hover:** buttons and business cards scale up slightly (`transform: scale(1.05)`) on hover/focus, and scale down slightly on press, giving the interface a tactile, responsive feel.
+
+### Hero gradient
+
+The hero banner (and the photo-fallback tiles described below) use a 135-degree gradient from `#81a2ff` to `#e9edf9` — a blue-to-near-white sweep that ties the hero, card media, and detail-modal photo hero together visually even when no photo is available.
+
+### Responsive breakpoints
+
+The layout adapts at three breakpoints, all implemented as `max-width` media queries in `css/styles.css`:
+
+| Breakpoint | Max width | Key changes |
+|------------|-----------|--------------|
+| Tablet | `1099px` | Business grid drops from 3 columns to 2; hero padding shrinks; wordmark shrinks slightly |
+| Phone | `767px` | Header stacks vertically; controls bar stacks (pills above sort); business grid drops to 1 column; favorites action buttons stretch full width |
+| Small phone | `400px` | Hero title and subtitle shrink further; wordmark and button text shrink further |
+
+`prefers-reduced-motion: reduce` is also respected: all animations and transitions are effectively disabled (and cards render fully visible instead of fading/sliding in) for users who request reduced motion.
+
+---
+
+## 4. Technology Stack
 
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Markup | HTML5 | Single page (`index.html`), semantic elements, ARIA attributes |
-| Styling | CSS3 | Custom properties (design tokens), CSS Grid/Flexbox, keyframe animations |
+| Styling | CSS3 | Custom properties (design tokens), CSS Grid/Flexbox, keyframe animations, the BizWiz design system |
 | Logic | Vanilla JavaScript (ES5-compatible) | No frameworks, no build step, no npm |
 | Auth | Firebase Authentication (Google provider) | Loaded via CDN compat build |
 | Database | Firebase Firestore | Loaded via CDN compat build |
 | Hosting | Firebase Hosting | Required for Google Sign-In (must be served over HTTPS) |
-| Data | `data/businesses.json` | 18 local businesses, loaded at startup via `fetch()` |
+| Data | `data/businesses.json` | 18 local businesses, each with a photo URL, loaded at startup via `fetch()` |
+| Images | Unsplash (hotlinked via URL) | Each business's `image` field points to an Unsplash photo URL; `images.unsplash.com` is preconnected in `index.html` for faster loading |
 
 **Firebase SDK version:** 10.12.0 (compat builds, loaded from `https://www.gstatic.com/firebasejs/`).
 
@@ -120,7 +173,7 @@ No npm packages, bundlers, transpilers, or frameworks are used. The app runs dir
 
 ---
 
-## 4. Architecture & File Responsibilities
+## 5. Architecture & File Responsibilities
 
 The app follows a strict single-responsibility module pattern. Each file owns exactly one concern, and inter-module communication flows only through the public namespaces they expose on `window`.
 
@@ -150,7 +203,7 @@ The only file that reads from or writes to Firestore. Manages three collections:
 The only file that calls Firebase Auth methods. Signs users in via Google popup, signs them out, exposes the current user, and notifies subscribers when auth state changes. All write-gating in other modules relies on `AppAuth.getCurrentUser()`.
 
 **`js/ui.js`**
-Handles all DOM manipulation and rendering. Builds the business card grid, the detail modal, the favorites modal, the review form, the category dropdown, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
+Handles all DOM manipulation and rendering. Builds the business card grid (including photo media with a gradient+emoji fallback), the category filter pills, the detail modal (including its photo hero), the favorites modal, the review form, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
 
 **`js/app.js`**
 The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
@@ -171,7 +224,7 @@ AppData  AppStorage ← AppFirebase (db)
 
 ---
 
-## 5. Data Model
+## 6. Data Model
 
 ### `data/businesses.json` — Seed Catalog
 
@@ -187,12 +240,13 @@ The file contains a top-level `"businesses"` array. Each business object has the
 | `website` | `string` | URL (placeholder URLs in current seed data) |
 | `description` | `string` | One-to-two sentence description |
 | `hours` | `string` | Human-readable hours string |
-| `icon` | `string` | Single emoji representing the business type |
+| `icon` | `string` | Single emoji representing the business type; used as the fallback graphic when a photo is unavailable |
 | `priceLevel` | `string` | `"$"`, `"$$"`, or `"$$$"` |
 | `seedRating` | `{ sum: number, count: number }` | Pre-loaded rating aggregate (combined with live reviews) |
 | `deal` | `{ title: string, code: string, description: string }` | Promotional deal; present on every business in the current catalog |
+| `image` | `string` | URL of an Unsplash photo representing the business; shown atop the business card and as the detail-modal hero photo. If the image fails to load, the UI falls back to a gradient tile with the business's `icon` emoji. |
 
-**Current catalog size:** 18 businesses across 7 categories.
+**Current catalog size:** 18 businesses across 7 categories (Books & Gifts, Cafes & Bakeries, Fitness, Health & Beauty, Restaurants, Retail & Boutiques, Services).
 
 ### Firestore Collections
 
@@ -232,7 +286,7 @@ Records that a user has claimed a deal. Document ID is `"{userId}_{businessId}"`
 
 ---
 
-## 6. Security Model
+## 7. Security Model
 
 Firestore security rules (`firestore.rules`) implement the following policy:
 
@@ -260,7 +314,7 @@ Every write operation in `storage.js` additionally calls `requireUser()` before 
 
 ---
 
-## 7. Setup & Configuration
+## 8. Setup & Configuration
 
 ### Step 1 — Create a Firebase project
 
@@ -271,20 +325,9 @@ Every write operation in `storage.js` additionally calls `requireUser()` before 
 
 ### Step 2 — Plug in the Firebase config
 
-Open `js/firebase.js`. Replace the six `REPLACE_WITH_*` placeholder values in the `firebaseConfig` object with the values from your Firebase project's SDK setup screen:
+Open `js/firebase.js`. The `firebaseConfig` object holds the values from your Firebase project's SDK setup screen (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId). The current build is already connected to the `byte-sized-business-lfa` Firebase project.
 
-```javascript
-var firebaseConfig = {
-  apiKey:            "REPLACE_WITH_API_KEY",
-  authDomain:        "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
-  projectId:         "REPLACE_WITH_PROJECT_ID",
-  storageBucket:     "REPLACE_WITH_PROJECT_ID.appspot.com",
-  messagingSenderId: "REPLACE_WITH_SENDER_ID",
-  appId:             "REPLACE_WITH_APP_ID",
-};
-```
-
-Until these are replaced the app runs in **browse-only mode**: search, filter, and sort work, but sign-in, reviews, bookmarks, and deal claims are disabled (the "Sign in" button shows a setup notice).
+If these values are ever reset to placeholders (`REPLACE_WITH_*`), the app falls back to **browse-only mode**: search, filter, and sort work, but sign-in, reviews, bookmarks, and deal claims are disabled (the "Sign in" button shows a setup notice).
 
 ### Step 3 — Deploy Firestore security rules
 
@@ -300,7 +343,7 @@ In the Firebase console, go to **Authentication → Settings → Authorized doma
 
 ---
 
-## 8. How to Run and Deploy
+## 9. How to Run and Deploy
 
 ### Important: file:// will not work
 
@@ -347,22 +390,22 @@ Per FBLA submission requirements: zip the project source files (excluding `node_
 
 ---
 
-## 9. FBLA Rubric Checklist
+## 10. FBLA Rubric Checklist
 
 | Rubric Requirement | Implementation | File(s) |
 |--------------------|----------------|---------|
-| Sort/filter businesses by category | Category dropdown filters the grid in real time; updates on every change event | `js/data.js` (`query`), `js/ui.js` (`populateCategories`, `emitQueryChange`), `js/app.js` (`handleQueryChange`) |
+| Sort/filter businesses by category | Category pill buttons filter the grid in real time on click | `js/data.js` (`query`), `js/ui.js` (`populateCategories`, `handleCategoryClick`, `emitQueryChange`), `js/app.js` (`handleQueryChange`) |
 | Leave reviews and star ratings (signed-in users only) | Review form in the detail modal; star picker (radio inputs); posts to Firestore `reviews` collection; auth-gated at both client and server | `js/storage.js` (`addReview`), `js/ui.js` (`buildReviewForm`, `bindModalDynamicEvents`), `js/app.js` (`handleSubmitReview`) |
-| Sort businesses by average rating | "Top rated" option in the Sort by dropdown; averages combine seed data with live Firestore reviews | `js/data.js` (`query`, `getAverageRating`, `getCombinedRating`), `js/app.js` (`refreshReviewStats`) |
-| Bookmark/save favorite businesses (signed-in users only) | Star button on every card; saved to Firestore `bookmarks` collection; auth-gated at both client and server | `js/storage.js` (`addBookmark`, `removeBookmark`), `js/app.js` (`handleToggleBookmark`) |
+| Sort businesses by average rating | "Top rated" option in the Sort dropdown; averages combine seed data with live Firestore reviews | `js/data.js` (`query`, `getAverageRating`, `getCombinedRating`), `js/app.js` (`refreshReviewStats`) |
+| Bookmark/save favorite businesses (signed-in users only) | Star button overlaid on every card's photo; saved to Firestore `bookmarks` collection; auth-gated at both client and server | `js/storage.js` (`addBookmark`, `removeBookmark`), `js/app.js` (`handleToggleBookmark`) |
 | Display deals and coupons per business | Deal teaser on every card; full deal with claim button in detail modal; code revealed after claim | `js/ui.js` (`buildCard`, `openBusinessModal`), `js/storage.js` (`claimDeal`), `js/app.js` (`handleClaimDeal`) |
 | Bot prevention via Google Sign-In | All write actions require Google Sign-In; Google enforces account security and two-step verification during the popup flow | `js/auth.js` (`signInWithGoogle`), `js/app.js` (`handleSignIn`, auth checks in every intent handler) |
 | Export/print favorites list (output report) | "Export report" downloads `my-favorite-businesses.html`; "Print" opens the browser print dialog; report is a formatted HTML table | `js/app.js` (`buildFavoritesReportHtml`, `handleExportFavorites`, `handlePrintFavorites`) |
-| Real-time search that updates as user types | Search input fires on the `input` event; grid re-renders on every keystroke; matches name, category, description, and address | `js/data.js` (`matchesSearch`, `query`), `js/ui.js` (`emitQueryChange`), `js/app.js` (`handleQueryChange`) |
+| Real-time search that updates as user types | Hero search input fires on the `input` event; grid re-renders on every keystroke; matches name, category, description, and address | `js/data.js` (`matchesSearch`, `query`), `js/ui.js` (`emitQueryChange`), `js/app.js` (`handleQueryChange`) |
 
 ---
 
-## 10. Function Reference
+## 11. Function Reference
 
 This section lists every public and private function in each JavaScript module. Functions are listed in the order they appear in the source file.
 
@@ -377,7 +420,7 @@ This section lists every public and private function in each JavaScript module. 
 | `initializeFirebase` (IIFE) | Wraps the entire module to avoid polluting the global scope | — | `void` |
 | `configHasRealValues(config)` | Detects whether the Firebase config still contains placeholder values | `config` — `Object` | `boolean` |
 
-**Exposed namespace:** `window.AppFirebase` — `{ isConfigured: boolean, auth: Object\|null, db: Object\|null }`
+**Exposed namespace:** `window.AppFirebase` — `{ isConfigured: boolean, auth: Object|null, db: Object|null }`
 
 ---
 
@@ -444,33 +487,37 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `js/ui.js`
 
-**Responsibility:** All DOM manipulation and rendering. Never touches Firestore or Firebase Auth.
+**Responsibility:** All DOM manipulation and rendering, including the BizWiz design system's pill-shaped filters and photo media. Never touches Firestore or Firebase Auth.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
 | `defineUiModule` (IIFE) | Wraps the entire module | — | `void` |
 | `escapeHtml(value)` | Escapes a raw string for safe insertion as HTML text content | `value` — `string` | `string` |
 | `formatDate(date)` | Formats a JavaScript Date as a short human-readable string (e.g. "Jun 16, 2026") | `date` — `Date` | `string` |
-| `buildStars(rating)` | Builds the HTML for a 5-star visual display with proportional fill | `rating` — `number` (0–5) | `string` (HTML) |
-| `getControlValues()` | Reads the current values of the search, category, and sort controls | — | `{ searchTerm: string, category: string, sortBy: string }` |
+| `buildStars(rating)` | Builds the HTML for a 5-star visual display with proportional gold fill | `rating` — `number` (0–5) | `string` (HTML) |
+| `bindImageFallbacks(root)` | Attaches an `error` listener to every photo within a container so a broken image is replaced by a gradient tile with the business's emoji icon | `root` — `HTMLElement` | `void` |
+| `getControlValues()` | Reads the current values of the search input, active category pill, and sort dropdown | — | `{ searchTerm: string, category: string, sortBy: string }` |
 | `emitQueryChange()` | Reads control values and calls the `onQueryChange` handler | — | `void` |
-| `populateCategories(categories)` | Appends category options to the category filter dropdown | `categories` — `Array<string>` | `void` |
-| `buildCard(business, index, isBookmarked)` | Builds the HTML string for a single business card | `business` — `Object`, `index` — `number`, `isBookmarked` — `boolean` | `string` (HTML) |
-| `renderBusinesses(businesses, bookmarkedIds)` | Renders the full business grid and updates the results summary | `businesses` — `Array<Object>`, `bookmarkedIds` — `Object<string, boolean>` | `void` |
+| `populateCategories(categories)` | Builds the row of category filter pills (including an "All" pill) inside the controls bar | `categories` — `Array<string>` | `void` |
+| `buildCardMedia(business, isBookmarked)` | Builds the photo (or gradient+emoji fallback) and bookmark button shown at the top of a business card | `business` — `Object`, `isBookmarked` — `boolean` | `string` (HTML) |
+| `buildCard(business, index, isBookmarked)` | Builds the HTML string for a single business card, including its media, name, category badge, rating, description, deal teaser, and "View details" button | `business` — `Object`, `index` — `number`, `isBookmarked` — `boolean` | `string` (HTML) |
+| `renderBusinesses(businesses, bookmarkedIds)` | Renders the full business grid and updates the results summary; re-binds image fallbacks for the new cards | `businesses` — `Array<Object>`, `bookmarkedIds` — `Object<string, boolean>` | `void` |
 | `setCardBookmarkState(businessId, isBookmarked)` | Updates a single card's bookmark button in-place without re-rendering the grid | `businessId` — `string`, `isBookmarked` — `boolean` | `void` |
 | `buildReviewsHtml(reviews)` | Builds the HTML for the review list shown in the detail modal | `reviews` — `Array<Object>` | `string` (HTML) |
 | `buildReviewForm(isSignedIn)` | Builds the review submission form (signed-in users) or a sign-in prompt (signed-out users) | `isSignedIn` — `boolean` | `string` (HTML) |
-| `openBusinessModal(business, state)` | Renders and opens the business detail modal with reviews and deal information | `business` — `Object`, `state` — `{ reviews: Array, isSignedIn: boolean, isDealClaimed: boolean }` | `void` |
+| `buildDetailHero(business, average, count)` | Builds the photo hero (or gradient+emoji fallback) shown at the top of the detail modal, including the category badge, business name, and rating overlay | `business` — `Object`, `average` — `number`, `count` — `number` | `string` (HTML) |
+| `openBusinessModal(business, state)` | Renders and opens the business detail modal with its photo hero, info, deal, and reviews | `business` — `Object`, `state` — `{ reviews: Array, isSignedIn: boolean, isDealClaimed: boolean }` | `void` |
 | `bindModalDynamicEvents(business)` | Wires the claim-deal button and review form submit handler inside the open modal | `business` — `Object` | `void` |
 | `renderModalReviews(reviews)` | Replaces the reviews list inside the open modal and resets the review form | `reviews` — `Array<Object>` | `void` |
 | `revealDealCode()` | Makes the deal code visible and removes the "Claim deal" button in the open modal | — | `void` |
-| `openFavoritesModal(favorites)` | Renders and opens the favorites modal with the user's bookmarked businesses | `favorites` — `Array<Object>` | `void` |
+| `openFavoritesModal(favorites)` | Renders and opens the favorites modal with the user's bookmarked businesses, including thumbnail photos | `favorites` — `Array<Object>` | `void` |
 | `updateFavoritesCount(count)` | Updates the favorites count badge in the header; hides the badge when count is 0 | `count` — `number` | `void` |
 | `updateAuthState(user)` | Switches the header between the sign-in button and the signed-in user chip | `user` — `Object\|null` | `void` |
 | `showToast(message, type)` | Displays a transient toast notification; auto-hides after 2.8 seconds | `message` — `string`, `type` — `string` (optional, `"error"`) | `void` |
 | `openModal(modal)` | Shows a modal element and locks page scrolling | `modal` — `HTMLElement` | `void` |
 | `closeModals()` | Hides all modals and restores page scrolling | — | `void` |
-| `init(providedHandlers)` | Caches DOM element references and binds all static event listeners; must be called once at startup | `providedHandlers` — `Object<string, Function>` | `void` |
+| `handleCategoryClick(event)` | Handles a click on a category filter pill: updates the active category, toggles the pressed/active pill styling, and triggers a query change | `event` — `Event` | `void` |
+| `init(providedHandlers)` | Caches DOM element references and binds all static event listeners (search, sort, category pills, auth, favorites, help, modals); must be called once at startup | `providedHandlers` — `Object<string, Function>` | `void` |
 
 **Exposed namespace:** `window.AppUI`
 
@@ -509,4 +556,4 @@ This section lists every public and private function in each JavaScript module. 
 
 ---
 
-*Documentation generated for FBLA Coding & Programming 2025–2026. Byte-Sized Business Boost — Lake Forest, Illinois.*
+*Documentation generated for FBLA Coding & Programming 2025–2026. BizWiz — Lake Forest, Illinois.*

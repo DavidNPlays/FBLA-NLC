@@ -18,6 +18,9 @@
   /** The business currently shown in the detail modal, or null. */
   var activeBusiness = null;
 
+  /** The currently selected category filter ("all" or a category name). */
+  var activeCategory = "all";
+
   /** Cached DOM elements, populated in init(). */
   var elements = {};
 
@@ -73,13 +76,39 @@
   }
 
   /**
+   * Attach an error fallback to each photo in a container so a broken image is
+   * replaced by a gradient tile (and, where present, a category emoji).
+   * @param {HTMLElement} root The element whose images should get fallbacks.
+   * @returns {void}
+   */
+  function bindImageFallbacks(root) {
+    root.querySelectorAll("img[data-photo]").forEach(function (image) {
+      image.addEventListener("error", function () {
+        image.style.display = "none";
+        var parent = image.parentElement;
+        if (!parent) {
+          return;
+        }
+        var fallbackClass = image.getAttribute("data-fallback-class");
+        if (fallbackClass) {
+          parent.classList.add(fallbackClass);
+        }
+        var emoji = parent.querySelector("[data-emoji]");
+        if (emoji) {
+          emoji.hidden = false;
+        }
+      });
+    });
+  }
+
+  /**
    * Read the current values of the search, category, and sort controls.
    * @returns {{searchTerm: string, category: string, sortBy: string}} Query options.
    */
   function getControlValues() {
     return {
       searchTerm: elements.searchInput.value,
-      category: elements.categoryFilter.value,
+      category: activeCategory,
       sortBy: elements.sortSelect.value,
     };
   }
@@ -95,17 +124,66 @@
   }
 
   /**
-   * Populate the category filter dropdown.
-   * @param {Array<string>} categories Category names to add as options.
+   * Render the category filter as a row of pill buttons (with an "All" pill).
+   * @param {Array<string>} categories Category names to add as pills.
    * @returns {void}
    */
   function populateCategories(categories) {
+    var pills = ['<button class="filter-pill is-active" type="button" data-category="all" aria-pressed="true">All</button>'];
     categories.forEach(function (category) {
-      var option = document.createElement("option");
-      option.value = category;
-      option.textContent = category;
-      elements.categoryFilter.appendChild(option);
+      pills.push(
+        '<button class="filter-pill" type="button" data-category="' +
+          escapeHtml(category) +
+          '" aria-pressed="false">' +
+          escapeHtml(category) +
+          "</button>"
+      );
     });
+    elements.categoryFilters.innerHTML = pills.join("");
+  }
+
+  /**
+   * Build the media (photo or gradient+emoji fallback) for a business card.
+   * @param {Object} business The business to render media for.
+   * @param {boolean} isBookmarked Whether the business is bookmarked.
+   * @returns {string} The media HTML.
+   */
+  function buildCardMedia(business, isBookmarked) {
+    var bookmarkButton =
+      '<button class="card__bookmark' +
+      (isBookmarked ? " is-active" : "") +
+      '" type="button" data-action="bookmark" data-business-id="' +
+      escapeHtml(business.id) +
+      '" aria-label="' +
+      (isBookmarked ? "Remove bookmark" : "Add bookmark") +
+      '" title="Save to favorites">' +
+      (isBookmarked ? "★" : "☆") +
+      "</button>";
+
+    if (business.image) {
+      return (
+        '<div class="card__media">' +
+        '<img class="card__photo" data-photo data-fallback-class="card__media--fallback" ' +
+        'src="' +
+        escapeHtml(business.image) +
+        '" alt="' +
+        escapeHtml(business.name) +
+        '" loading="lazy" />' +
+        '<span class="card__emoji" data-emoji aria-hidden="true" hidden>' +
+        escapeHtml(business.icon || "🏪") +
+        "</span>" +
+        bookmarkButton +
+        "</div>"
+      );
+    }
+    return (
+      '<div class="card__media card__media--fallback">' +
+      '<span class="card__emoji" aria-hidden="true">' +
+      escapeHtml(business.icon || "🏪") +
+      "</span>" +
+      bookmarkButton +
+      "</div>"
+    );
   }
 
   /**
@@ -123,23 +201,9 @@
     return (
       '<article class="card" style="--card-index:' +
       index +
-      '" data-business-id="' +
-      escapeHtml(business.id) +
       '">' +
-      '<div class="card__top">' +
-      '<div class="card__icon" aria-hidden="true">' +
-      escapeHtml(business.icon || "🏪") +
-      "</div>" +
-      '<button class="card__bookmark' +
-      (isBookmarked ? " is-active" : "") +
-      '" type="button" data-action="bookmark" data-business-id="' +
-      escapeHtml(business.id) +
-      '" aria-label="' +
-      (isBookmarked ? "Remove bookmark" : "Add bookmark") +
-      '" title="Save to favorites">' +
-      (isBookmarked ? "★" : "☆") +
-      "</button>" +
-      "</div>" +
+      buildCardMedia(business, isBookmarked) +
+      '<div class="card__body">' +
       '<h3 class="card__name">' +
       escapeHtml(business.name) +
       "</h3>" +
@@ -147,7 +211,7 @@
       '<span class="badge">' +
       escapeHtml(business.category) +
       "</span>" +
-      "<span>" +
+      '<span class="price-level">' +
       escapeHtml(business.priceLevel || "") +
       "</span>" +
       "</div>" +
@@ -166,9 +230,10 @@
           "</span></div>"
         : "") +
       '<div class="card__footer">' +
-      '<button class="button button--ghost card__view" type="button" data-action="open" data-business-id="' +
+      '<button class="button button--primary card__view" type="button" data-action="open" data-business-id="' +
       escapeHtml(business.id) +
       '">View details</button>' +
+      "</div>" +
       "</div>" +
       "</article>"
     );
@@ -199,6 +264,7 @@
         return buildCard(business, index, !!marks[business.id]);
       })
       .join("");
+    bindImageFallbacks(elements.businessGrid);
   }
 
   /**
@@ -218,7 +284,7 @@
   }
 
   /**
-   * Build the HTML for the list of reviews shown in the detail modal.
+   * Build the HTML for the list of review cards shown in the detail modal.
    * @param {Array<Object>} reviews Review records ({userName, rating, text, createdAt}).
    * @returns {string} The reviews HTML, or an empty-state message.
    */
@@ -229,17 +295,17 @@
     return reviews
       .map(function (review) {
         return (
-          '<div class="review">' +
-          '<div class="review__head">' +
-          '<span class="review__author">' +
+          '<div class="review-card">' +
+          '<div class="review-card__head">' +
+          '<span class="review-card__author">' +
           escapeHtml(review.userName || "Anonymous") +
           "</span>" +
-          '<span class="review__date">' +
+          '<span class="review-card__date">' +
           escapeHtml(formatDate(review.createdAt)) +
           "</span>" +
           "</div>" +
           buildStars(review.rating) +
-          '<p class="review__text">' +
+          '<p class="review-card__text">' +
           escapeHtml(review.text) +
           "</p>" +
           "</div>"
@@ -275,7 +341,7 @@
             value +
             '" title="' +
             value +
-            ' star' +
+            " star" +
             (value > 1 ? "s" : "") +
             '">★</label>'
           );
@@ -292,6 +358,57 @@
   }
 
   /**
+   * Build the photo hero (or gradient+emoji fallback) for the detail modal.
+   * @param {Object} business The business being shown.
+   * @param {number} average The average rating.
+   * @param {number} count The number of ratings.
+   * @returns {string} The hero HTML.
+   */
+  function buildDetailHero(business, average, count) {
+    var ratingText =
+      count > 0 ? average.toFixed(1) + " out of 5 (" + count + ")" : "No ratings yet";
+    var scrim =
+      '<div class="detail-hero__scrim">' +
+      '<span class="detail-hero__badge">' +
+      escapeHtml(business.category) +
+      "</span>" +
+      '<h2 class="detail-hero__title" id="modal-business-name">' +
+      escapeHtml(business.name) +
+      "</h2>" +
+      '<div class="detail-hero__rating">' +
+      buildStars(average) +
+      "<span>" +
+      escapeHtml(ratingText) +
+      "</span></div>" +
+      "</div>";
+
+    if (business.image) {
+      return (
+        '<div class="detail-hero">' +
+        '<img class="detail-hero__photo" data-photo data-fallback-class="detail-hero--fallback" ' +
+        'src="' +
+        escapeHtml(business.image) +
+        '" alt="' +
+        escapeHtml(business.name) +
+        '" />' +
+        '<span class="detail-hero__emoji" data-emoji aria-hidden="true" hidden>' +
+        escapeHtml(business.icon || "🏪") +
+        "</span>" +
+        scrim +
+        "</div>"
+      );
+    }
+    return (
+      '<div class="detail-hero detail-hero--fallback">' +
+      '<span class="detail-hero__emoji" aria-hidden="true">' +
+      escapeHtml(business.icon || "🏪") +
+      "</span>" +
+      scrim +
+      "</div>"
+    );
+  }
+
+  /**
    * Render the full business detail modal and open it.
    * @param {Object} business The business to display.
    * @param {Object} state View state.
@@ -304,15 +421,14 @@
     activeBusiness = business;
     var average = window.AppData.getAverageRating(business);
     var count = window.AppData.getRatingCount(business);
-    var ratingLabel =
-      count > 0 ? average.toFixed(1) + " out of 5 (" + count + ")" : "No ratings yet";
 
     var dealHtml = business.deal
-      ? '<div class="detail__deal">' +
-        '<div class="detail__deal-title">🎟️ ' +
+      ? '<div class="detail-section">' +
+        '<div class="detail-deal">' +
+        '<div class="detail-deal__title">🎟️ ' +
         escapeHtml(business.deal.title) +
         "</div>" +
-        '<div class="detail__deal-desc">' +
+        '<div class="detail-deal__desc">' +
         escapeHtml(business.deal.description) +
         "</div>" +
         '<div class="deal-code' +
@@ -324,51 +440,41 @@
           ? ""
           : '<button class="button button--primary button--small" type="button" ' +
             'id="claim-deal" style="margin-top:12px;">Claim deal</button>') +
+        "</div>" +
         "</div>"
       : "";
 
     elements.modalBody.innerHTML =
-      '<div class="detail__header">' +
-      '<div class="detail__icon" aria-hidden="true">' +
-      escapeHtml(business.icon || "🏪") +
-      "</div>" +
-      "<div>" +
-      '<h2 class="detail__name" id="modal-business-name">' +
-      escapeHtml(business.name) +
-      "</h2>" +
-      '<div class="card__meta"><span class="badge">' +
-      escapeHtml(business.category) +
-      "</span><span>" +
-      escapeHtml(business.priceLevel || "") +
-      "</span></div>" +
-      "</div>" +
-      "</div>" +
-      '<div class="card__rating">' +
-      buildStars(average) +
-      "<span>" +
-      escapeHtml(ratingLabel) +
-      "</span></div>" +
-      '<div class="detail__info">' +
-      '<div class="detail__info-row"><span aria-hidden="true">📍</span><span>' +
+      buildDetailHero(business, average, count) +
+      '<div class="detail-section">' +
+      '<div class="info-card">' +
+      '<div class="section-title">About</div>' +
+      '<p class="info-card__text">' +
+      escapeHtml(business.description) +
+      "</p>" +
+      '<div class="visit-info">' +
+      '<div class="visit-info__row"><span aria-hidden="true">📍</span><span>' +
       escapeHtml(business.address) +
       "</span></div>" +
-      '<div class="detail__info-row"><span aria-hidden="true">📞</span><span>' +
+      '<div class="visit-info__row"><span aria-hidden="true">📞</span><span>' +
       escapeHtml(business.phone) +
       "</span></div>" +
-      '<div class="detail__info-row"><span aria-hidden="true">🕑</span><span>' +
+      '<div class="visit-info__row"><span aria-hidden="true">🕑</span><span>' +
       escapeHtml(business.hours) +
       "</span></div>" +
       "</div>" +
-      "<p style=\"margin-top:16px;color:var(--color-text-soft);\">" +
-      escapeHtml(business.description) +
-      "</p>" +
+      "</div>" +
+      "</div>" +
       dealHtml +
-      '<h3 class="section-title">Reviews</h3>' +
+      '<div class="detail-section">' +
+      '<div class="section-title">Reviews</div>' +
       '<div id="reviews-list">' +
       buildReviewsHtml(state.reviews) +
       "</div>" +
-      buildReviewForm(state.isSignedIn);
+      buildReviewForm(state.isSignedIn) +
+      "</div>";
 
+    bindImageFallbacks(elements.modalBody);
     openModal(elements.businessModal);
     bindModalDynamicEvents(business);
   }
@@ -457,11 +563,14 @@
       elements.favoritesList.innerHTML = favorites
         .map(function (business) {
           var average = window.AppData.getAverageRating(business);
+          var thumb = business.image
+            ? '<img class="favorite-row__thumb" data-photo src="' +
+              escapeHtml(business.image) +
+              '" alt="" loading="lazy" />'
+            : '<div class="favorite-row__thumb"></div>';
           return (
             '<div class="favorite-row">' +
-            '<div class="favorite-row__icon" aria-hidden="true">' +
-            escapeHtml(business.icon || "🏪") +
-            "</div>" +
+            thumb +
             '<div class="favorite-row__body">' +
             '<div class="favorite-row__name">' +
             escapeHtml(business.name) +
@@ -480,6 +589,7 @@
           );
         })
         .join("");
+      bindImageFallbacks(elements.favoritesList);
     }
     openModal(elements.favoritesModal);
   }
@@ -554,6 +664,25 @@
   }
 
   /**
+   * Handle a click on the category filter pills.
+   * @param {Event} event The click event.
+   * @returns {void}
+   */
+  function handleCategoryClick(event) {
+    var pill = event.target.closest(".filter-pill");
+    if (!pill) {
+      return;
+    }
+    activeCategory = pill.getAttribute("data-category");
+    elements.categoryFilters.querySelectorAll(".filter-pill").forEach(function (button) {
+      var isActive = button === pill;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+    emitQueryChange();
+  }
+
+  /**
    * Cache DOM references and bind all static event listeners.
    * @param {Object<string, Function>} providedHandlers Controller callbacks.
    * @returns {void}
@@ -563,7 +692,8 @@
 
     elements = {
       searchInput: document.getElementById("search-input"),
-      categoryFilter: document.getElementById("category-filter"),
+      searchForm: document.getElementById("search-form"),
+      categoryFilters: document.getElementById("category-filters"),
       sortSelect: document.getElementById("sort-select"),
       resultsSummary: document.getElementById("results-summary"),
       businessGrid: document.getElementById("business-grid"),
@@ -586,10 +716,17 @@
       toast: document.getElementById("toast"),
     };
 
-    // Real-time search + filter + sort controls.
+    // Real-time search (updates as the user types).
     elements.searchInput.addEventListener("input", emitQueryChange);
-    elements.categoryFilter.addEventListener("change", emitQueryChange);
+    // The hero search button submits the form; keep it from reloading the page.
+    elements.searchForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      emitQueryChange();
+    });
     elements.sortSelect.addEventListener("change", emitQueryChange);
+
+    // Category pill filters (delegated).
+    elements.categoryFilters.addEventListener("click", handleCategoryClick);
 
     // Auth buttons.
     elements.signInButton.addEventListener("click", function () {
