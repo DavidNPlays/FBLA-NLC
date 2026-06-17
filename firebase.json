@@ -2,11 +2,15 @@
   "hosting": {
     "public": ".",
     "ignore": [
+      "**/.*",
+      ".git/**",
+      ".claude/**",
+      ".firebase/**",
+      "node_modules/**",
+      "**/node_modules/**",
       "firebase.json",
       ".firebaserc",
       "firestore.rules",
-      "**/.*",
-      "**/node_modules/**",
       "CLAUDE.md",
       "documentation.md",
       "package.json",
