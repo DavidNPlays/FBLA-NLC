@@ -20,12 +20,13 @@
    *   storageBucket: string, messagingSenderId: string, appId: string}}
    */
   var firebaseConfig = {
-    apiKey: "REPLACE_WITH_API_KEY",
-    authDomain: "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
-    projectId: "REPLACE_WITH_PROJECT_ID",
-    storageBucket: "REPLACE_WITH_PROJECT_ID.appspot.com",
-    messagingSenderId: "REPLACE_WITH_SENDER_ID",
-    appId: "REPLACE_WITH_APP_ID",
+    apiKey: "AIzaSyDdUMvq0aUTnd7TIfMLa7W-4x6Xi2RIVdg",
+    authDomain: "byte-sized-business-lfa.firebaseapp.com",
+    projectId: "byte-sized-business-lfa",
+    storageBucket: "byte-sized-business-lfa.firebasestorage.app",
+    messagingSenderId: "301486410978",
+    appId: "1:301486410978:web:2aaca26d3a188f4100a2bb",
+    measurementId: "G-CE09PGJZRE",
   };
 
   /**
