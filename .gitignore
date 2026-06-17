@@ -17,3 +17,7 @@ node_modules/
 # Playwright MCP test artifacts
 .playwright-mcp/
 .firebase/
+
+# Local screenshots
+*.jpeg
+*.png
