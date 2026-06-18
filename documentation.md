@@ -101,13 +101,25 @@ From the Favorites modal, signed-in users can export their saved businesses as a
 
 All write actions (reviews, bookmarks, deal claims) require the user to sign in via Google. The Google Sign-In popup flow enforces Google's own account authentication, including any two-step verification the user has enabled on their Google account. This prevents anonymous bot submissions. Firestore security rules provide a second layer of enforcement at the server.
 
-**User flow:** Click "Sign in with Google" in the header. A Google popup appears. After authenticating, the header shows the user's name and avatar.
+Signing out reloads the page. This guarantees that every piece of signed-in client state — the in-memory favorites/bookmarks map, claimed-deal flags, and any open review form — is fully cleared rather than risking stale data lingering in memory after the Firebase Auth session ends.
+
+**User flow:** Click "Sign in with Google" in the header. A Google popup appears. After authenticating, the header shows the user's name and avatar. Click "Sign out" to end the session; the page reloads automatically and returns to the signed-out, browse-only view.
 
 ### Help Modal
 
 A "? Help" button in the header opens a how-to modal summarizing search, filtering, sorting, viewing details, signing in, reviewing, bookmarking, claiming deals, and exporting/printing — a quick-reference guide for first-time visitors and judges.
 
 **User flow:** Click "? Help" in the header.
+
+### Chatbot Assistant (Guided Help, No AI)
+
+A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is entirely **guided/scripted** — there is no AI model and no free-text input box. The user can only click preloaded question buttons (e.g., "How can I leave a review?"), and the bot replies with a canned answer for that question.
+
+After the first question is answered, an "End chat" button appears alongside the remaining questions. Clicking "End chat" prompts the user to rate their experience using a visual 1–5 star control (hovering previews the fill, clicking submits the rating). Once a star is clicked, the assistant shows "Thank you for your feedback!" and the conversation ends. Reopening the launcher after a finished conversation starts a brand-new conversation from the greeting.
+
+The chatbot widget is purely a front-end help feature: it holds no business data, never reads or writes Firestore, and performs no authentication checks. Star ratings submitted to the chatbot are cosmetic only and are **not persisted** anywhere.
+
+**User flow:** Click the round chat icon in the bottom-right corner. Click a preloaded question to see its answer. Optionally click more questions, then click "End chat," pick a star rating, and read the thank-you message. Click the × in the chat header (or the launcher again) to close the panel at any time.
 
 ---
 
@@ -185,6 +197,7 @@ index.html
        js/storage.js    → all Firestore I/O, exposes window.AppStorage
        js/auth.js       → Google Sign-In / auth state, exposes window.AppAuth
        js/ui.js         → DOM rendering & event wiring, exposes window.AppUI
+       js/chatbot.js    → guided help widget, exposes window.AppChatbot
        js/app.js        → controller: wires all modules together
 ```
 
@@ -205,8 +218,11 @@ The only file that calls Firebase Auth methods. Signs users in via Google popup,
 **`js/ui.js`**
 Handles all DOM manipulation and rendering. Builds the business card grid (including photo media with a gradient+emoji fallback), the category filter pills, the detail modal (including its photo hero), the favorites modal, the review form, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
 
+**`js/chatbot.js`**
+Runs the guided help "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel of preloaded questions and canned answers. Contains no AI and no free-text input — the user only clicks buttons. Owns the end-of-chat star-rating prompt and thank-you message, but does not persist the rating anywhere. Holds no business data and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js`.
+
 **`js/app.js`**
-The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
+The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Also initializes the chatbot widget (`AppChatbot.init()`) if it is present. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
 
 ### Data and Auth flow diagram
 
@@ -399,7 +415,7 @@ Per FBLA submission requirements: zip the project source files (excluding `node_
 | Sort businesses by average rating | "Top rated" option in the Sort dropdown; averages combine seed data with live Firestore reviews | `js/data.js` (`query`, `getAverageRating`, `getCombinedRating`), `js/app.js` (`refreshReviewStats`) |
 | Bookmark/save favorite businesses (signed-in users only) | Star button overlaid on every card's photo; saved to Firestore `bookmarks` collection; auth-gated at both client and server | `js/storage.js` (`addBookmark`, `removeBookmark`), `js/app.js` (`handleToggleBookmark`) |
 | Display deals and coupons per business | Deal teaser on every card; full deal with claim button in detail modal; code revealed after claim | `js/ui.js` (`buildCard`, `openBusinessModal`), `js/storage.js` (`claimDeal`), `js/app.js` (`handleClaimDeal`) |
-| Bot prevention via Google Sign-In | All write actions require Google Sign-In; Google enforces account security and two-step verification during the popup flow | `js/auth.js` (`signInWithGoogle`), `js/app.js` (`handleSignIn`, auth checks in every intent handler) |
+| Bot prevention via Google Sign-In | All write actions require Google Sign-In; Google enforces account security and two-step verification during the popup flow; signing out reloads the page so no signed-in state lingers afterward | `js/auth.js` (`signInWithGoogle`, `signOutUser`), `js/app.js` (`handleSignIn`, `handleSignOut`, auth checks in every intent handler) |
 | Export/print favorites list (output report) | "Export report" downloads `my-favorite-businesses.html`; "Print" opens the browser print dialog; report is a formatted HTML table | `js/app.js` (`buildFavoritesReportHtml`, `handleExportFavorites`, `handlePrintFavorites`) |
 | Real-time search that updates as user types | Hero search input fires on the `input` event; grid re-renders on every keystroke; matches name, category, description, and address | `js/data.js` (`matchesSearch`, `query`), `js/ui.js` (`emitQueryChange`), `js/app.js` (`handleQueryChange`) |
 
@@ -523,6 +539,32 @@ This section lists every public and private function in each JavaScript module. 
 
 ---
 
+### `js/chatbot.js`
+
+**Responsibility:** The guided "BizWiz Assistant" help widget — a scripted question-and-answer chat opened from a bottom-right launcher button. No AI, no free-text input, and no business/Firestore/auth logic; star ratings collected at the end of a conversation are not persisted.
+
+| Function | Purpose | Parameters | Returns |
+|----------|---------|------------|---------|
+| `defineChatbotModule` (IIFE) | Wraps the entire module | — | `void` |
+| `addMessage(text, sender)` | Appends a chat bubble (bot or user) to the message list and scrolls to the newest message | `text` — `string`, `sender` — `string` (`"bot"` or `"user"`) | `void` |
+| `clearOptions()` | Removes all buttons/controls currently shown in the options area below the messages | — | `void` |
+| `renderQuestionOptions()` | Renders the preloaded question buttons, plus an "End chat" button once at least one question has been answered | — | `void` |
+| `handleQuestionClick(index)` | Handles a click on a preloaded question: echoes the question as a user bubble, shows its canned answer as a bot bubble, and re-renders the options | `index` — `number` (index into the scripted question list) | `void` |
+| `endConversation()` | Ends the question phase, prompts the user with a closing message, and renders the star-rating control | — | `void` |
+| `renderRating()` | Renders the 1–5 star rating control in the options area, including hover-to-preview fill and click-to-submit behavior | — | `void` |
+| `fillStars(count)` | Inner helper of `renderRating` that visually fills a given number of stars to preview or confirm a rating | `count` — `number` (how many stars to fill) | `void` |
+| `handleRating(value)` | Records the user's star selection as a chat bubble, shows the "Thank you for your feedback!" message, clears the options, and marks the conversation as ended | `value` — `number` (chosen rating, 1–5) | `void` |
+| `resetConversation()` | Clears all messages and options and resets the conversation's internal state flags | — | `void` |
+| `startConversation()` | Starts a fresh conversation: shows the greeting message and renders the initial question list | — | `void` |
+| `openChat()` | Opens the chat window, starting a brand-new conversation if none is in progress or the previous one already ended | — | `void` |
+| `closeChat()` | Hides the chat window and updates the launcher's expanded state | — | `void` |
+| `toggleChat()` | Opens the chat window if it is hidden, or closes it if it is open | — | `void` |
+| `init()` | Caches DOM references for the launcher, window, message list, and options area, and binds the launcher/close click handlers; does nothing if the chatbot markup is absent from the page | — | `void` |
+
+**Exposed namespace:** `window.AppChatbot`
+
+---
+
 ### `js/app.js`
 
 **Responsibility:** Main application controller. Wires all modules together, holds session state, and implements every user intent handler.
@@ -544,13 +586,13 @@ This section lists every public and private function in each JavaScript module. 
 | `handleClaimDeal(business)` | Writes a deal claim to Firestore and reveals the code in the modal; requires sign-in | `business` — `Object` | `void` |
 | `handleSubmitReview(business, rating, text)` | Writes a review to Firestore, refreshes the modal reviews, updates aggregates, and re-renders the grid; requires sign-in | `business` — `Object`, `rating` — `number`, `text` — `string` | `void` |
 | `handleSignIn()` | Starts the Google Sign-In popup flow via `AppAuth`; shows an error toast if Firebase is not configured | — | `void` |
-| `handleSignOut()` | Signs the current user out via `AppAuth` | — | `void` |
+| `handleSignOut()` | Signs the current user out via `AppAuth`, then reloads the page so all signed-in state (favorites/bookmarks, claimed deals, the review form) is cleared | — | `void` |
 | `handleOpenFavorites()` | Opens the favorites modal with the current bookmarked businesses | — | `void` |
 | `handleRemoveFavorite(businessId)` | Removes a bookmark from Firestore, updates the in-memory map, and refreshes the favorites modal | `businessId` — `string` | `void` |
 | `handleExportFavorites()` | Generates the HTML report and triggers a browser download of `my-favorite-businesses.html` | — | `void` |
 | `handlePrintFavorites()` | Opens a new browser window with the HTML report and triggers the print dialog | — | `void` |
 | `handleAuthChange(user)` | Responds to sign-in state changes by updating the header UI and reloading the user's bookmarks and deal claims from Firestore | `user` — `Object\|null` | `void` |
-| `startApp()` | Initializes the entire application: wires UI handlers, loads the business catalog, fetches review stats, renders the grid, and starts listening for auth state changes | — | `void` |
+| `startApp()` | Initializes the entire application: wires UI handlers, initializes the chatbot widget (if present), loads the business catalog, fetches review stats, renders the grid, and starts listening for auth state changes | — | `void` |
 
 **No exposed namespace.** `app.js` is the top-level controller and exposes nothing on `window`; all coordination happens through the other modules' namespaces.
 

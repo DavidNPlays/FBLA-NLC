@@ -282,11 +282,14 @@
   }
 
   /**
-   * Sign the current user out.
+   * Sign the current user out, then reload the page so all signed-in state
+   * (favorites/bookmarks, claimed deals, the review form) is cleared cleanly.
    * @returns {void}
    */
   function handleSignOut() {
-    window.AppAuth.signOutUser();
+    window.AppAuth.signOutUser().then(function () {
+      window.location.reload();
+    });
   }
 
   /**
@@ -408,6 +411,11 @@
       onExportFavorites: handleExportFavorites,
       onPrintFavorites: handlePrintFavorites,
     });
+
+    // Build the guided chatbot assistant (independent of catalog data).
+    if (window.AppChatbot) {
+      window.AppChatbot.init();
+    }
 
     window.AppData.loadBusinesses()
       .then(function () {
