@@ -83,6 +83,18 @@
   /** Whether the conversation has been started (greeting shown). */
   var hasStarted = false;
 
+  /** How many messages the user has sent in this conversation. */
+  var userMessageCount = 0;
+
+  /** Whether the user ended the chat (the assistant stops replying). */
+  var chatEnded = false;
+
+  /** The star rating the user selected (1–5), or 0 if not yet rated. */
+  var selectedRating = 0;
+
+  /** Number of stars shown in the rating widget. */
+  var STAR_COUNT = 5;
+
   /**
    * Whether the Worker proxy URL has been configured.
    * @returns {boolean} True if a real proxy URL is set.
@@ -247,15 +259,18 @@
    */
   function handleSend(text) {
     var trimmed = (text || "").trim();
-    if (!trimmed || isAwaiting) {
+    if (!trimmed || isAwaiting || chatEnded) {
       return;
     }
     clearStarters();
+    hideEndPrompt();
     addMessage(trimmed, "user");
     conversationMessages.push({ role: "user", content: trimmed });
+    userMessageCount += 1;
     elements.input.value = "";
     setBusy(true);
     showTyping();
+    maybeShowEndPrompt();
 
     sendToAssistant(conversationMessages)
       .then(function (reply) {
@@ -283,9 +298,165 @@
         }
       })
       .then(function () {
+        if (chatEnded) {
+          return;
+        }
         setBusy(false);
         elements.input.focus();
+        maybeShowEndPrompt();
       });
+  }
+
+  /**
+   * Reveal the small "end chat" popup once the user has sent a message.
+   * Does nothing if the chat has already ended.
+   * @returns {void}
+   */
+  function maybeShowEndPrompt() {
+    if (chatEnded || userMessageCount < 1 || !elements.endPrompt) {
+      return;
+    }
+    elements.endPrompt.hidden = false;
+    elements.messages.scrollTop = elements.messages.scrollHeight;
+  }
+
+  /**
+   * Hide the small "end chat" popup.
+   * @returns {void}
+   */
+  function hideEndPrompt() {
+    if (elements.endPrompt) {
+      elements.endPrompt.hidden = true;
+    }
+  }
+
+  /**
+   * End the conversation: stop the assistant from replying, lock the composer,
+   * and show the star-rating overlay.
+   * @returns {void}
+   */
+  function endChat() {
+    if (chatEnded) {
+      return;
+    }
+    chatEnded = true;
+    hideEndPrompt();
+    clearStarters();
+    setBusy(true);
+    renderStars();
+    if (elements.rating) {
+      elements.rating.hidden = false;
+    }
+  }
+
+  /**
+   * Paint the rating stars filled up to (and including) the given level.
+   * @param {number} level How many stars to show as filled (0–5).
+   * @returns {void}
+   */
+  function paintStars(level) {
+    var starButtons = elements.stars.querySelectorAll(".chatbot__star");
+    starButtons.forEach(function (starButton, index) {
+      var isFilled = index < level;
+      starButton.classList.toggle("is-filled", isFilled);
+      starButton.textContent = isFilled ? "★" : "☆";
+    });
+  }
+
+  /**
+   * Record the chosen rating, lock the stars, and show a thank-you note.
+   * @param {number} rating The selected rating (1–5).
+   * @returns {void}
+   */
+  function submitRating(rating) {
+    selectedRating = rating;
+    paintStars(rating);
+    var starButtons = elements.stars.querySelectorAll(".chatbot__star");
+    starButtons.forEach(function (starButton) {
+      starButton.disabled = true;
+      starButton.setAttribute("aria-checked", "false");
+    });
+    starButtons[rating - 1].setAttribute("aria-checked", "true");
+    if (elements.ratingThanks) {
+      elements.ratingThanks.hidden = false;
+    }
+    // Briefly show the thank-you note, then close and wipe the chat so the next
+    // time the launcher is opened a brand-new conversation appears.
+    window.setTimeout(function () {
+      closeChat();
+      resetConversation();
+    }, 1500);
+  }
+
+  /**
+   * Wipe the conversation and all chat state back to a fresh start. After this
+   * runs, opening the chat again shows a new greeting with no prior history.
+   * @returns {void}
+   */
+  function resetConversation() {
+    conversationMessages = [];
+    userMessageCount = 0;
+    chatEnded = false;
+    selectedRating = 0;
+    hasStarted = false;
+    isAwaiting = false;
+    elements.messages.innerHTML = "";
+    clearStarters();
+    hideEndPrompt();
+    elements.stars.innerHTML = "";
+    if (elements.rating) {
+      elements.rating.hidden = true;
+    }
+    if (elements.ratingThanks) {
+      elements.ratingThanks.hidden = true;
+    }
+    elements.input.value = "";
+    elements.input.disabled = false;
+    elements.send.disabled = false;
+  }
+
+  /**
+   * Build the five interactive rating stars with hover and click behavior.
+   * @returns {void}
+   */
+  function renderStars() {
+    elements.stars.innerHTML = "";
+    var starIndex;
+    for (starIndex = 1; starIndex <= STAR_COUNT; starIndex++) {
+      var starButton = document.createElement("button");
+      starButton.type = "button";
+      starButton.className = "chatbot__star";
+      starButton.textContent = "☆";
+      starButton.setAttribute("role", "radio");
+      starButton.setAttribute("aria-checked", "false");
+      starButton.setAttribute("aria-label", starIndex + " star" + (starIndex > 1 ? "s" : ""));
+      bindStarEvents(starButton, starIndex);
+      elements.stars.appendChild(starButton);
+    }
+  }
+
+  /**
+   * Attach hover and click handlers to a single rating star.
+   * @param {HTMLElement} starButton The star button element.
+   * @param {number} value The star's rating value (1–5).
+   * @returns {void}
+   */
+  function bindStarEvents(starButton, value) {
+    starButton.addEventListener("mouseenter", function () {
+      if (selectedRating === 0) {
+        paintStars(value);
+      }
+    });
+    starButton.addEventListener("mouseleave", function () {
+      if (selectedRating === 0) {
+        paintStars(0);
+      }
+    });
+    starButton.addEventListener("click", function () {
+      if (selectedRating === 0) {
+        submitRating(value);
+      }
+    });
   }
 
   /**
@@ -350,6 +521,11 @@
       form: document.getElementById("chatbot-form"),
       input: document.getElementById("chatbot-input"),
       send: document.getElementById("chatbot-send"),
+      endPrompt: document.getElementById("chatbot-endprompt"),
+      endChat: document.getElementById("chatbot-endchat"),
+      rating: document.getElementById("chatbot-rating"),
+      stars: document.getElementById("chatbot-stars"),
+      ratingThanks: document.getElementById("chatbot-rating-thanks"),
     };
 
     if (!elements.launcher || !elements.window || !elements.form) {
@@ -362,6 +538,10 @@
     var closeButton = elements.window.querySelector("[data-chatbot-close]");
     if (closeButton) {
       closeButton.addEventListener("click", closeChat);
+    }
+
+    if (elements.endChat) {
+      elements.endChat.addEventListener("click", endChat);
     }
 
     elements.form.addEventListener("submit", function (event) {

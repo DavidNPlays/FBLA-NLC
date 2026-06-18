@@ -259,6 +259,31 @@
       </div>
       <div id="chatbot-messages" class="chatbot__messages" aria-live="polite"></div>
       <div id="chatbot-options" class="chatbot__options"></div>
+
+      <!-- Small in-chat popup offering to end the conversation -->
+      <div id="chatbot-endprompt" class="chatbot__endprompt" role="alert" hidden>
+        <button id="chatbot-endchat" class="chatbot__endchat" type="button">
+          Thank you for everything! (Chat Ends)
+        </button>
+      </div>
+
+      <!-- Rating overlay shown once the user ends the chat -->
+      <div id="chatbot-rating" class="chatbot__rating" hidden>
+        <div class="chatbot__rating-card" role="dialog" aria-label="Rate the assistant">
+          <p class="chatbot__rating-title">Rate the BizWiz Assistant</p>
+          <p class="chatbot__rating-sub">How would you rate this chat, from 1 to 5 stars?</p>
+          <div
+            id="chatbot-stars"
+            class="chatbot__stars"
+            role="radiogroup"
+            aria-label="Rating from 1 to 5 stars"
+          ></div>
+          <p id="chatbot-rating-thanks" class="chatbot__rating-thanks" hidden>
+            Thanks for your feedback! 💜
+          </p>
+        </div>
+      </div>
+
       <form id="chatbot-form" class="chatbot__composer">
         <label class="visually-hidden" for="chatbot-input">Message the assistant</label>
         <input

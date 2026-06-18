@@ -1262,6 +1262,112 @@ img {
   }
 }
 
+/* Small in-chat popup that offers to end the conversation */
+.chatbot__endprompt {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-lavender);
+  background: var(--color-surface);
+  animation: fade-in var(--transition);
+}
+
+.chatbot__endprompt[hidden] {
+  display: none;
+}
+
+.chatbot__endchat {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-periwinkle);
+  border-radius: var(--radius-pill);
+  background: var(--color-lavender);
+  color: var(--color-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.chatbot__endchat:hover {
+  background: var(--color-periwinkle);
+  color: #fff;
+  transform: scale(1.02);
+}
+
+/* Rating overlay shown after the chat ends */
+.chatbot__rating {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(31, 31, 51, 0.55);
+  animation: fade-in var(--transition);
+}
+
+.chatbot__rating[hidden] {
+  display: none;
+}
+
+.chatbot__rating-card {
+  width: 100%;
+  max-width: 260px;
+  padding: 22px 20px;
+  border-radius: var(--radius-card-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: modal-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.chatbot__rating-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.chatbot__rating-sub {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--color-body-alt);
+}
+
+.chatbot__stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.chatbot__star {
+  border: none;
+  background: none;
+  padding: 2px;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-lavender);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.chatbot__star:hover {
+  transform: scale(1.15);
+}
+
+.chatbot__star.is-filled {
+  color: #f6b73c;
+}
+
+.chatbot__rating-thanks {
+  margin: 14px 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.chatbot__rating-thanks[hidden] {
+  display: none;
+}
+
 @media (max-width: 480px) {
   .chatbot {
     right: 16px;
