@@ -19,7 +19,7 @@
    * the Worker. While it stays a placeholder, the widget runs in fallback mode.
    * @type {string}
    */
-  var CHATBOT_PROXY_URL = "REPLACE_WITH_WORKER_URL";
+  var CHATBOT_PROXY_URL = "https://bizwiz-assistant.locallift.workers.dev";
 
   /**
    * Suggested starter questions. Each also provides keywords and a canned answer
