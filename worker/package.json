@@ -3,13 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Cloudflare Worker proxy for the BizWiz Assistant (Anthropic Claude API).",
+  "description": "Cloudflare Worker for the BizWiz Assistant (Cloudflare Workers AI / Llama 3.3 70B).",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.105.0"
   },
   "devDependencies": {
     "wrangler": "^4.102.0"

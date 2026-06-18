@@ -1,11 +1,11 @@
 /*
-  chatbot.js — BizWiz Assistant: an AI help chatbot powered by the Anthropic
-  Claude API (claude-sonnet-4-6) through a Cloudflare Worker proxy.
+  chatbot.js — BizWiz Assistant: an AI help chatbot powered by Cloudflare
+  Workers AI (Meta Llama 3.3 70B) through a Cloudflare Worker proxy.
   Responsibility: own the chat widget. It sends the conversation to the Worker
-  (which holds the API key) and renders the AI's replies. If the proxy is not
+  (which runs the model) and renders the AI's replies. If the proxy is not
   configured or is unreachable, it falls back to canned answers for common
   questions so the widget still helps. This module holds no business, Firestore,
-  or Firebase Auth logic, and never sees the API key.
+  or Firebase Auth logic.
 
   SETUP: after deploying the Worker (see worker/README.md), set CHATBOT_PROXY_URL
   below to your Worker URL, e.g. "https://bizwiz-assistant.<sub>.workers.dev".

@@ -1,17 +1,14 @@
 /*
-  worker/src/index.js — Cloudflare Worker that proxies the BizWiz Assistant
-  chatbot to the Anthropic Claude API.
-  Responsibility: keep the Anthropic API key secret (it is stored as a Worker
-  secret, never sent to the browser), validate and bound incoming chat requests,
-  call Claude (claude-sonnet-4-6) with a BizWiz system prompt, and return the
-  reply with CORS headers. The static site talks to this Worker; this Worker is
-  the only place the API key exists.
+  worker/src/index.js — Cloudflare Worker that powers the BizWiz Assistant
+  chatbot using Cloudflare Workers AI (Meta Llama 3.3 70B).
+  Responsibility: validate and bound incoming chat requests, run the Llama model
+  via the Workers AI binding (env.AI) with a BizWiz system prompt, and return the
+  reply with CORS headers. The static site talks to this Worker; inference runs
+  on Cloudflare's network, so there is no external API key to manage.
 */
 
-import Anthropic from "@anthropic-ai/sdk";
-
-/** The Claude model used for the assistant (requested by the project owner). */
-var MODEL_ID = "claude-sonnet-4-6";
+/** The Workers AI model used for the assistant (Meta Llama 3.3 70B). */
+var MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 /** Maximum tokens for a single assistant reply (keeps replies fast and cheap). */
 var MAX_TOKENS = 1024;
@@ -135,7 +132,7 @@ function sanitizeMessages(rawMessages) {
 /**
  * Cloudflare Worker entry point.
  * @param {Request} request The incoming HTTP request.
- * @param {Object} env The Worker environment (holds ANTHROPIC_API_KEY secret).
+ * @param {Object} env The Worker environment (provides the Workers AI binding env.AI).
  * @returns {Promise<Response>} The HTTP response.
  */
 async function handleRequest(request, env) {
@@ -150,7 +147,7 @@ async function handleRequest(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "Method not allowed." }, 405, origin);
   }
-  if (!env.ANTHROPIC_API_KEY) {
+  if (!env.AI) {
     return jsonResponse({ error: "The assistant is not configured." }, 500, origin);
   }
 
@@ -174,22 +171,13 @@ async function handleRequest(request, env) {
   }
 
   try {
-    var client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-    var response = await client.messages.create({
-      model: MODEL_ID,
+    // Workers AI chat models take the system prompt as the first message.
+    var aiMessages = [{ role: "system", content: systemPrompt }].concat(messages);
+    var result = await env.AI.run(MODEL_ID, {
+      messages: aiMessages,
       max_tokens: MAX_TOKENS,
-      system: systemPrompt,
-      messages: messages,
     });
-    var reply = response.content
-      .filter(function (block) {
-        return block.type === "text";
-      })
-      .map(function (block) {
-        return block.text;
-      })
-      .join("\n")
-      .trim();
+    var reply = result && typeof result.response === "string" ? result.response.trim() : "";
     return jsonResponse({ reply: reply || "Sorry, I didn't catch that — could you rephrase?" }, 200, origin);
   } catch (apiError) {
     return jsonResponse({ error: "The assistant is unavailable right now. Please try again." }, 502, origin);

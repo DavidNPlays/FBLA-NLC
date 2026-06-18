@@ -111,9 +111,9 @@ A "? Help" button in the header opens a how-to modal summarizing search, filteri
 
 **User flow:** Click "? Help" in the header.
 
-### Chatbot Assistant (Real AI, Powered by Claude)
+### Chatbot Assistant (Real AI, Powered by Llama 3.3 via Cloudflare Workers AI)
 
-A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is a **real conversational AI** — it is powered by the Anthropic Claude API (model `claude-sonnet-4-6`), reached through a Cloudflare Worker proxy. Users can either click one of six starter-question chips (e.g., "How can I leave a review?") or type any free-text question into the composer at the bottom of the panel.
+A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is a **real conversational AI** — it is powered by Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`), run by **Cloudflare Workers AI** and reached through a Cloudflare Worker proxy. Inference runs entirely on Cloudflare's network through the Worker's built-in `AI` binding, so there is no external API key to manage and no separate AI billing — Workers AI has a free daily allowance. Users can either click one of six starter-question chips (e.g., "How can I leave a review?") or type any free-text question into the composer at the bottom of the panel.
 
 When a message is sent, it is appended to the running conversation and posted to the Worker proxy along with a compact, auto-generated catalog of the current businesses (name, category, and active deal) so the assistant can answer with real, up-to-date information instead of guessing. While waiting for a reply, an animated "assistant is typing" indicator (three bouncing dots) is shown in place of the next message. The composer is disabled during this time to prevent duplicate sends.
 
@@ -180,12 +180,12 @@ The layout adapts at three breakpoints, all implemented as `max-width` media que
 | Hosting | Firebase Hosting | Required for Google Sign-In (must be served over HTTPS) |
 | Data | `data/businesses.json` | 18 local businesses, each with a photo URL, loaded at startup via `fetch()` |
 | Images | Unsplash (hotlinked via URL) | Each business's `image` field points to an Unsplash photo URL; `images.unsplash.com` is preconnected in `index.html` for faster loading |
-| Chatbot AI | Anthropic Claude API (`claude-sonnet-4-6`) | Generates the assistant's free-text replies; called only from the backend proxy, never from the browser |
-| Chatbot backend | Cloudflare Workers + the official `@anthropic-ai/sdk` npm package | A small serverless function (`worker/src/index.js`) that holds the Anthropic API key as a secret and proxies chat requests from `js/chatbot.js` to Claude |
+| Chatbot AI | Meta Llama 3.3 70B (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) via **Cloudflare Workers AI** | Generates the assistant's free-text replies; the model runs on Cloudflare's network through the Worker's `AI` binding — there is no external API key and no separate AI billing |
+| Chatbot backend | Cloudflare Workers (no third-party SDK required) | A small serverless function (`worker/src/index.js`) that calls `env.AI.run(...)` (the Workers AI binding) and proxies chat requests from `js/chatbot.js` to the Llama model |
 
 **Firebase SDK version:** 10.12.0 (compat builds, loaded from `https://www.gstatic.com/firebasejs/`).
 
-The front-end application itself (everything under `index.html`, `css/`, and `js/`) remains plain HTML, CSS, and vanilla JavaScript with no npm packages, bundlers, transpilers, or frameworks, and runs directly from `index.html` when served over HTTP/HTTPS. The **only** part of the project that uses npm packages and a separate deployment step is the optional `worker/` backend that powers the chatbot's AI replies; it is deployed independently to Cloudflare Workers and is not required for the rest of the app (search, filter, sort, reviews, bookmarks, and deals) to function.
+The front-end application itself (everything under `index.html`, `css/`, and `js/`) remains plain HTML, CSS, and vanilla JavaScript with no npm packages, bundlers, transpilers, or frameworks, and runs directly from `index.html` when served over HTTP/HTTPS. The **only** part of the project that uses npm packages (just the `wrangler` CLI dev dependency) and a separate deployment step is the optional `worker/` backend that powers the chatbot's AI replies; it is deployed independently to Cloudflare Workers and is not required for the rest of the app (search, filter, sort, reviews, bookmarks, and deals) to function.
 
 ---
 
@@ -206,7 +206,8 @@ index.html
        js/app.js        → controller: wires all modules together
 
 worker/                → Cloudflare Worker backend (separate deployment, see below)
-  └─ src/index.js      → receives chat requests from js/chatbot.js, calls Claude
+  └─ src/index.js      → receives chat requests from js/chatbot.js, calls Llama 3.3
+                            70B via the Workers AI binding (env.AI)
 ```
 
 ### Module Descriptions
@@ -227,36 +228,37 @@ The only file that calls Firebase Auth methods. Signs users in via Google popup,
 Handles all DOM manipulation and rendering. Builds the business card grid (including photo media with a gradient+emoji fallback), the category filter pills, the detail modal (including its photo hero), the favorites modal, the review form, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
 
 **`js/chatbot.js`**
-Runs the "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel backed by a **real AI model**. It sends the running conversation (and a compact catalog summary built from `AppData.getAllBusinesses()`) to a Cloudflare Worker proxy, which calls the Anthropic Claude API and returns the model's reply. The widget shows a typing indicator while waiting, renders the AI's reply as a chat bubble, and supports both free-text input and clickable starter-question chips. If the Worker proxy URL is not configured or the request fails, it falls back to a small set of canned keyword-matched answers so the widget still helps. This module never sees the Anthropic API key, holds no business data of its own, and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js` (aside from the one read-only call into `AppData` to build the catalog summary).
+Runs the "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel backed by a **real AI model**. It sends the running conversation (and a compact catalog summary built from `AppData.getAllBusinesses()`) to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via the Workers AI binding and returns the model's reply. The widget shows a typing indicator while waiting, renders the AI's reply as a chat bubble, and supports both free-text input and clickable starter-question chips. If the Worker proxy URL is not configured or the request fails, it falls back to a small set of canned keyword-matched answers so the widget still helps. This module holds no business data of its own and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js` (aside from the one read-only call into `AppData` to build the catalog summary). There is no API key involved anywhere in this flow — the Worker's `AI` binding handles authentication with Cloudflare's infrastructure automatically.
 
 **`js/app.js`**
 The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Also initializes the chatbot widget (`AppChatbot.init()`) if it is present. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
 
 ### Backend proxy (`worker/`)
 
-The chatbot's AI replies are not generated in the browser. A small **Cloudflare Worker**, deployed separately from Firebase Hosting, sits between `js/chatbot.js` and the Anthropic Claude API:
+The chatbot's AI replies are not generated in the browser. A small **Cloudflare Worker**, deployed separately from Firebase Hosting, sits between `js/chatbot.js` and Cloudflare's own Workers AI inference service:
 
 ```
 js/chatbot.js (browser)
       |  POST { messages, catalog }
       v
 worker/src/index.js  (Cloudflare Worker)
-      |  holds ANTHROPIC_API_KEY as a Worker secret
       |  validates + bounds the request, adds the BizWiz system prompt
+      |  calls env.AI.run(...) — the Workers AI binding (no API key involved)
       v
-Anthropic Claude API (claude-sonnet-4-6)
+Cloudflare Workers AI — Meta Llama 3.3 70B
+(@cf/meta/llama-3.3-70b-instruct-fp8-fast)
 ```
 
-**Why a proxy is required:** BizWiz is a static site with no server-side code of its own — anything placed in `js/chatbot.js` is downloadable by anyone who opens the browser's developer tools. An Anthropic API key embedded directly in client-side JavaScript would be exposed to every visitor and could be stolen and abused within minutes. The Worker exists specifically so the API key lives only on Cloudflare's servers, as a secret (`ANTHROPIC_API_KEY`), and is never sent to or visible from the browser.
+**Why a proxy is still used:** BizWiz is a static site with no server-side code of its own — anything placed in `js/chatbot.js` is downloadable by anyone who opens the browser's developer tools. The Worker exists so request validation, rate-limiting-style bounds, and the BizWiz system prompt are enforced server-side rather than trusted to the client. The security story is simpler than a typical AI proxy, though: because the Worker calls the model through its `AI` binding (`env.AI`) rather than an external HTTP API, **there is no API key or secret of any kind to store, rotate, or leak** — Cloudflare authenticates the binding automatically based on which Worker is running.
 
 **What the Worker does (`worker/src/index.js`):**
 - Accepts only `POST` requests (and `OPTIONS` preflight requests for CORS) from a fixed allow-list of origins (the Firebase Hosting domains plus common localhost ports for local testing).
 - Validates and trims the incoming conversation: rejects malformed payloads, caps the conversation to the most recent 20 messages, caps each message to 2000 characters, and requires the conversation to end on a user turn.
 - Prepends a fixed system prompt describing BizWiz and what the assistant should and should not do, optionally appending the business catalog string sent by the client.
-- Calls the Claude API (`claude-sonnet-4-6`) via the official `@anthropic-ai/sdk` package and returns the model's text reply as JSON, with CORS headers applied.
-- Returns a clear JSON error (and an appropriate HTTP status) if the request is invalid, the API key is missing, or the Claude API call fails — `js/chatbot.js` treats any of these as a signal to fall back to canned answers.
+- Calls the Workers AI binding (`env.AI.run(MODEL_ID, { messages, max_tokens })`) to run Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) and returns the model's text reply as JSON, with CORS headers applied.
+- Returns a clear JSON error (and an appropriate HTTP status) if the request is invalid, the `AI` binding is unavailable, or the model call fails — `js/chatbot.js` treats any of these as a signal to fall back to canned answers.
 
-The Worker is configured by `worker/wrangler.toml` and documented in `worker/README.md`; see [Setup & Configuration](#8-setup--configuration) below for deployment steps.
+The Worker is configured by `worker/wrangler.toml` (which declares the `AI` binding under `[ai]`) and documented in `worker/README.md`; see [Setup & Configuration](#8-setup--configuration) below for deployment steps.
 
 ### Data and Auth flow diagram
 
@@ -273,7 +275,7 @@ AppData  AppStorage ← AppFirebase (db)
 
 Chatbot (separate flow, not part of AppApp's intent handling)
       |
-  AppChatbot ──fetch──> Cloudflare Worker (worker/src/index.js) ──> Claude API
+  AppChatbot ──fetch──> Cloudflare Worker (worker/src/index.js) ──env.AI.run()──> Cloudflare Workers AI (Llama 3.3 70B)
 ```
 
 ---
@@ -397,29 +399,25 @@ In the Firebase console, go to **Authentication → Settings → Authorized doma
 
 ### Step 5 — Deploy the chatbot's Cloudflare Worker proxy
 
-The chatbot's real AI replies require a one-time backend deployment, separate from Firebase Hosting. Full details live in `worker/README.md`; the summary is:
+The chatbot's real AI replies require a one-time backend deployment, separate from Firebase Hosting. The Worker uses **Cloudflare Workers AI** (Meta Llama 3.3 70B) through its built-in `AI` binding, so there is **no API key and no separate AI billing to set up** — just a free Cloudflare account. Full details live in `worker/README.md`; the summary is:
 
-1. **Create a free Cloudflare account** at [https://dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up) (no credit card required for the Workers free tier).
-2. **Get an Anthropic API key** at [https://console.anthropic.com](https://console.anthropic.com) → API Keys, and make sure billing is enabled on the account.
-3. From the `worker/` folder, install dependencies:
+1. **Create a free Cloudflare account** at [https://dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up) (no credit card required — Workers AI includes a free daily allowance).
+2. From the `worker/` folder, install the dev dependency (Wrangler):
    ```bash
    cd worker
-   npm install @anthropic-ai/sdk@latest
-   npm install -D wrangler@latest
+   npm install
    ```
-4. **Log in to Cloudflare** (opens a browser tab):
+3. **Log in to Cloudflare** (opens a browser tab):
    ```bash
    npx wrangler login
    ```
-5. **Store the Anthropic key as a Worker secret** (never committed to source control):
-   ```bash
-   npx wrangler secret put ANTHROPIC_API_KEY
-   ```
-6. **Deploy the Worker:**
+4. **Deploy the Worker:**
    ```bash
    npx wrangler deploy
    ```
    Wrangler prints the Worker's URL, e.g. `https://bizwiz-assistant.<your-subdomain>.workers.dev`.
+
+   There is no `wrangler secret put` step — the `AI` binding declared in `worker/wrangler.toml` gives the Worker direct access to Cloudflare Workers AI with no separate key to store.
 
 ### Step 6 — Point the front end at the deployed Worker
 
@@ -615,7 +613,7 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `js/chatbot.js`
 
-**Responsibility:** The "BizWiz Assistant" chat widget — a bottom-right launcher button that opens a real AI-powered chat panel. Sends conversation history to a Cloudflare Worker proxy, which calls the Anthropic Claude API, and renders the reply. Falls back to canned keyword-matched answers if the proxy is unconfigured or unreachable. Holds no Firestore or Firebase Auth logic and never sees the Anthropic API key.
+**Responsibility:** The "BizWiz Assistant" chat widget — a bottom-right launcher button that opens a real AI-powered chat panel. Sends conversation history to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via Cloudflare Workers AI and returns the reply. Falls back to canned keyword-matched answers if the proxy is unconfigured or unreachable. Holds no Firestore or Firebase Auth logic. There is no API key anywhere in this flow — the Worker's `AI` binding authenticates with Cloudflare's infrastructure automatically.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
@@ -643,14 +641,15 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `worker/src/index.js` (Cloudflare Worker backend)
 
-**Responsibility:** Keeps the Anthropic API key secret on the server side, validates and bounds incoming chat requests from `js/chatbot.js`, calls the Claude API (`claude-sonnet-4-6`) with the BizWiz system prompt, and returns the reply with CORS headers applied. This file is deployed to Cloudflare Workers — it is not part of the static site bundle and is not loaded by `index.html`.
+**Responsibility:** Validates and bounds incoming chat requests from `js/chatbot.js`, runs Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) through the Workers AI binding (`env.AI`) with the BizWiz system prompt, and returns the reply with CORS headers applied. Because inference runs through Cloudflare's own `AI` binding rather than an external HTTP API, the Worker holds no API key or secret of any kind. This file is deployed to Cloudflare Workers — it is not part of the static site bundle and is not loaded by `index.html`.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
-| `buildCorsHeaders(origin)` | Builds the CORS response headers, allowing the request's origin only if it appears in the `ALLOWED_ORIGINS` allow-list (otherwise defaults to the first allowed origin) | `origin` — `string` (the request's `Origin` header) | `Object` (headers map) |
+| `isAllowedOrigin(origin)` | Checks whether a request's origin may call the Worker; an empty origin (non-browser clients such as curl, where CORS does not apply) is always permitted | `origin` — `string` (the request's `Origin` header) | `boolean` |
+| `buildCorsHeaders(origin)` | Builds the CORS response headers, only setting `Access-Control-Allow-Origin` when the request's origin appears in the `ALLOWED_ORIGINS` allow-list (never spoofed to a different origin) | `origin` — `string` (the request's `Origin` header) | `Object` (headers map) |
 | `jsonResponse(payload, status, origin)` | Builds a JSON `Response` with the appropriate CORS and `Content-Type` headers | `payload` — `Object`, `status` — `number`, `origin` — `string` | `Response` |
-| `sanitizeMessages(rawMessages)` | Validates the untrusted `messages` array from the request body: rejects non-array/empty input, keeps only the most recent 20 messages, enforces a 2000-character cap per message, requires alternating `user`/`assistant` roles with non-empty string content, and requires the conversation to end on a `user` turn | `rawMessages` — `*` (untrusted request body field) | `Array<Object>\|null` |
-| `handleRequest(request, env)` | The Worker's entry point: handles CORS preflight, rejects non-`POST` methods, confirms the `ANTHROPIC_API_KEY` secret is set, parses and sanitizes the request body, optionally folds the client-supplied business catalog into the system prompt, calls the Claude API via `@anthropic-ai/sdk`, and returns the assistant's reply (or a JSON error) | `request` — `Request`, `env` — `Object` (Worker environment, holds `ANTHROPIC_API_KEY`) | `Promise<Response>` |
+| `sanitizeMessages(rawMessages)` | Validates the untrusted `messages` array from the request body: rejects non-array/empty input, keeps only the most recent 20 messages, enforces a 2000-character cap per message, requires `user`/`assistant` roles with non-empty string content, and requires the conversation to end on a `user` turn | `rawMessages` — `*` (untrusted request body field) | `Array<Object>\|null` |
+| `handleRequest(request, env)` | The Worker's entry point: handles CORS preflight, rejects non-`POST` methods, confirms the `env.AI` Workers AI binding is available, parses and sanitizes the request body, optionally folds the client-supplied business catalog into the system prompt, calls `env.AI.run(MODEL_ID, { messages, max_tokens })` to get the Llama model's reply, and returns it as JSON (or a JSON error) | `request` — `Request`, `env` — `Object` (Worker environment, provides the Workers AI binding `env.AI`) | `Promise<Response>` |
 
 **Exposed via:** `export default { fetch: handleRequest }` — the standard Cloudflare Worker module entry point (not a `window` namespace, since this code never runs in a browser).
 

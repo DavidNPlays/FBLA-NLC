@@ -12,7 +12,7 @@ node_modules/
 *.swp
 
 # Claude agent runtime scratch memory (not part of the deliverable)
-.claude/agent-memory/
+**/.claude/agent-memory/
 
 # Playwright MCP test artifacts
 .playwright-mcp/
