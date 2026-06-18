@@ -259,6 +259,22 @@
       </div>
       <div id="chatbot-messages" class="chatbot__messages" aria-live="polite"></div>
       <div id="chatbot-options" class="chatbot__options"></div>
+      <form id="chatbot-form" class="chatbot__composer">
+        <label class="visually-hidden" for="chatbot-input">Message the assistant</label>
+        <input
+          id="chatbot-input"
+          class="chatbot__input"
+          type="text"
+          placeholder="Ask about BizWiz…"
+          autocomplete="off"
+          maxlength="2000"
+        />
+        <button id="chatbot-send" class="chatbot__send" type="submit" aria-label="Send message">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M3 11l18-8-8 18-2-7-8-3z" />
+          </svg>
+        </button>
+      </form>
     </div>
 
     <!-- ===================== Toast notifications ===================== -->

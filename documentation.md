@@ -111,15 +111,17 @@ A "? Help" button in the header opens a how-to modal summarizing search, filteri
 
 **User flow:** Click "? Help" in the header.
 
-### Chatbot Assistant (Guided Help, No AI)
+### Chatbot Assistant (Real AI, Powered by Claude)
 
-A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is entirely **guided/scripted** — there is no AI model and no free-text input box. The user can only click preloaded question buttons (e.g., "How can I leave a review?"), and the bot replies with a canned answer for that question.
+A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is a **real conversational AI** — it is powered by the Anthropic Claude API (model `claude-sonnet-4-6`), reached through a Cloudflare Worker proxy. Users can either click one of six starter-question chips (e.g., "How can I leave a review?") or type any free-text question into the composer at the bottom of the panel.
 
-After the first question is answered, an "End chat" button appears alongside the remaining questions. Clicking "End chat" prompts the user to rate their experience using a visual 1–5 star control (hovering previews the fill, clicking submits the rating). Once a star is clicked, the assistant shows "Thank you for your feedback!" and the conversation ends. Reopening the launcher after a finished conversation starts a brand-new conversation from the greeting.
+When a message is sent, it is appended to the running conversation and posted to the Worker proxy along with a compact, auto-generated catalog of the current businesses (name, category, and active deal) so the assistant can answer with real, up-to-date information instead of guessing. While waiting for a reply, an animated "assistant is typing" indicator (three bouncing dots) is shown in place of the next message. The composer is disabled during this time to prevent duplicate sends.
 
-The chatbot widget is purely a front-end help feature: it holds no business data, never reads or writes Firestore, and performs no authentication checks. Star ratings submitted to the chatbot are cosmetic only and are **not persisted** anywhere.
+If the Worker proxy has not been configured yet (the placeholder `CHATBOT_PROXY_URL` has not been replaced with a real deployed URL) or the request to it fails for any reason (network error, bad response, timeout, etc.), the widget automatically falls back to a small set of canned answers for common questions (reviews, favorites, deals, search/filter, sign-in, exporting favorites) so the assistant remains useful even without a live connection. If no canned answer matches and the proxy was simply never configured, the starter-question chips are re-shown so the user has something to click.
 
-**User flow:** Click the round chat icon in the bottom-right corner. Click a preloaded question to see its answer. Optionally click more questions, then click "End chat," pick a star rating, and read the thank-you message. Click the × in the chat header (or the launcher again) to close the panel at any time.
+The chatbot widget owns no business logic itself: it never reads or writes Firestore and performs no authentication checks directly. It does read the in-memory business catalog (via `AppData.getAllBusinesses()`) only to build the catalog summary it sends to the assistant.
+
+**User flow:** Click the round chat icon in the bottom-right corner. Either click one of the suggested starter questions or type a free-text question and press Enter/click send. A typing indicator appears briefly, then the AI's reply is shown as a chat bubble. Continue the conversation with as many follow-up questions as needed. Click the × in the chat header (or the launcher again) to close the panel at any time; reopening it resumes the same conversation until the page is reloaded.
 
 ---
 
@@ -178,10 +180,12 @@ The layout adapts at three breakpoints, all implemented as `max-width` media que
 | Hosting | Firebase Hosting | Required for Google Sign-In (must be served over HTTPS) |
 | Data | `data/businesses.json` | 18 local businesses, each with a photo URL, loaded at startup via `fetch()` |
 | Images | Unsplash (hotlinked via URL) | Each business's `image` field points to an Unsplash photo URL; `images.unsplash.com` is preconnected in `index.html` for faster loading |
+| Chatbot AI | Anthropic Claude API (`claude-sonnet-4-6`) | Generates the assistant's free-text replies; called only from the backend proxy, never from the browser |
+| Chatbot backend | Cloudflare Workers + the official `@anthropic-ai/sdk` npm package | A small serverless function (`worker/src/index.js`) that holds the Anthropic API key as a secret and proxies chat requests from `js/chatbot.js` to Claude |
 
 **Firebase SDK version:** 10.12.0 (compat builds, loaded from `https://www.gstatic.com/firebasejs/`).
 
-No npm packages, bundlers, transpilers, or frameworks are used. The app runs directly from `index.html` when served over HTTP/HTTPS.
+The front-end application itself (everything under `index.html`, `css/`, and `js/`) remains plain HTML, CSS, and vanilla JavaScript with no npm packages, bundlers, transpilers, or frameworks, and runs directly from `index.html` when served over HTTP/HTTPS. The **only** part of the project that uses npm packages and a separate deployment step is the optional `worker/` backend that powers the chatbot's AI replies; it is deployed independently to Cloudflare Workers and is not required for the rest of the app (search, filter, sort, reviews, bookmarks, and deals) to function.
 
 ---
 
@@ -197,8 +201,12 @@ index.html
        js/storage.js    → all Firestore I/O, exposes window.AppStorage
        js/auth.js       → Google Sign-In / auth state, exposes window.AppAuth
        js/ui.js         → DOM rendering & event wiring, exposes window.AppUI
-       js/chatbot.js    → guided help widget, exposes window.AppChatbot
+       js/chatbot.js    → AI assistant widget, exposes window.AppChatbot
+                            (calls out to the Worker proxy described below)
        js/app.js        → controller: wires all modules together
+
+worker/                → Cloudflare Worker backend (separate deployment, see below)
+  └─ src/index.js      → receives chat requests from js/chatbot.js, calls Claude
 ```
 
 ### Module Descriptions
@@ -219,10 +227,36 @@ The only file that calls Firebase Auth methods. Signs users in via Google popup,
 Handles all DOM manipulation and rendering. Builds the business card grid (including photo media with a gradient+emoji fallback), the category filter pills, the detail modal (including its photo hero), the favorites modal, the review form, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
 
 **`js/chatbot.js`**
-Runs the guided help "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel of preloaded questions and canned answers. Contains no AI and no free-text input — the user only clicks buttons. Owns the end-of-chat star-rating prompt and thank-you message, but does not persist the rating anywhere. Holds no business data and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js`.
+Runs the "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel backed by a **real AI model**. It sends the running conversation (and a compact catalog summary built from `AppData.getAllBusinesses()`) to a Cloudflare Worker proxy, which calls the Anthropic Claude API and returns the model's reply. The widget shows a typing indicator while waiting, renders the AI's reply as a chat bubble, and supports both free-text input and clickable starter-question chips. If the Worker proxy URL is not configured or the request fails, it falls back to a small set of canned keyword-matched answers so the widget still helps. This module never sees the Anthropic API key, holds no business data of its own, and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js` (aside from the one read-only call into `AppData` to build the catalog summary).
 
 **`js/app.js`**
 The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Also initializes the chatbot widget (`AppChatbot.init()`) if it is present. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
+
+### Backend proxy (`worker/`)
+
+The chatbot's AI replies are not generated in the browser. A small **Cloudflare Worker**, deployed separately from Firebase Hosting, sits between `js/chatbot.js` and the Anthropic Claude API:
+
+```
+js/chatbot.js (browser)
+      |  POST { messages, catalog }
+      v
+worker/src/index.js  (Cloudflare Worker)
+      |  holds ANTHROPIC_API_KEY as a Worker secret
+      |  validates + bounds the request, adds the BizWiz system prompt
+      v
+Anthropic Claude API (claude-sonnet-4-6)
+```
+
+**Why a proxy is required:** BizWiz is a static site with no server-side code of its own — anything placed in `js/chatbot.js` is downloadable by anyone who opens the browser's developer tools. An Anthropic API key embedded directly in client-side JavaScript would be exposed to every visitor and could be stolen and abused within minutes. The Worker exists specifically so the API key lives only on Cloudflare's servers, as a secret (`ANTHROPIC_API_KEY`), and is never sent to or visible from the browser.
+
+**What the Worker does (`worker/src/index.js`):**
+- Accepts only `POST` requests (and `OPTIONS` preflight requests for CORS) from a fixed allow-list of origins (the Firebase Hosting domains plus common localhost ports for local testing).
+- Validates and trims the incoming conversation: rejects malformed payloads, caps the conversation to the most recent 20 messages, caps each message to 2000 characters, and requires the conversation to end on a user turn.
+- Prepends a fixed system prompt describing BizWiz and what the assistant should and should not do, optionally appending the business catalog string sent by the client.
+- Calls the Claude API (`claude-sonnet-4-6`) via the official `@anthropic-ai/sdk` package and returns the model's text reply as JSON, with CORS headers applied.
+- Returns a clear JSON error (and an appropriate HTTP status) if the request is invalid, the API key is missing, or the Claude API call fails — `js/chatbot.js` treats any of these as a signal to fall back to canned answers.
+
+The Worker is configured by `worker/wrangler.toml` and documented in `worker/README.md`; see [Setup & Configuration](#8-setup--configuration) below for deployment steps.
 
 ### Data and Auth flow diagram
 
@@ -236,6 +270,10 @@ User interaction
 AppData  AppStorage ← AppFirebase (db)
            |
          AppAuth ← AppFirebase (auth)
+
+Chatbot (separate flow, not part of AppApp's intent handling)
+      |
+  AppChatbot ──fetch──> Cloudflare Worker (worker/src/index.js) ──> Claude API
 ```
 
 ---
@@ -356,6 +394,42 @@ This uploads `firestore.rules` to your project so that the server-side security 
 ### Step 4 — Add your hosting domain to Firebase Auth
 
 In the Firebase console, go to **Authentication → Settings → Authorized domains** and add your Firebase Hosting domain (e.g., `your-project-id.web.app`). Google Sign-In will not work from unlisted domains.
+
+### Step 5 — Deploy the chatbot's Cloudflare Worker proxy
+
+The chatbot's real AI replies require a one-time backend deployment, separate from Firebase Hosting. Full details live in `worker/README.md`; the summary is:
+
+1. **Create a free Cloudflare account** at [https://dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up) (no credit card required for the Workers free tier).
+2. **Get an Anthropic API key** at [https://console.anthropic.com](https://console.anthropic.com) → API Keys, and make sure billing is enabled on the account.
+3. From the `worker/` folder, install dependencies:
+   ```bash
+   cd worker
+   npm install @anthropic-ai/sdk@latest
+   npm install -D wrangler@latest
+   ```
+4. **Log in to Cloudflare** (opens a browser tab):
+   ```bash
+   npx wrangler login
+   ```
+5. **Store the Anthropic key as a Worker secret** (never committed to source control):
+   ```bash
+   npx wrangler secret put ANTHROPIC_API_KEY
+   ```
+6. **Deploy the Worker:**
+   ```bash
+   npx wrangler deploy
+   ```
+   Wrangler prints the Worker's URL, e.g. `https://bizwiz-assistant.<your-subdomain>.workers.dev`.
+
+### Step 6 — Point the front end at the deployed Worker
+
+Open `js/chatbot.js` and set the `CHATBOT_PROXY_URL` constant near the top of the file to the Worker URL from Step 5, then redeploy Firebase Hosting so the live site picks up the change:
+
+```bash
+firebase deploy --only hosting
+```
+
+Until `CHATBOT_PROXY_URL` is set to a real URL, the chatbot widget automatically runs in fallback mode (canned answers only) rather than failing — see [Chatbot Assistant](#2-feature-list) above.
 
 ---
 
@@ -541,27 +615,44 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `js/chatbot.js`
 
-**Responsibility:** The guided "BizWiz Assistant" help widget — a scripted question-and-answer chat opened from a bottom-right launcher button. No AI, no free-text input, and no business/Firestore/auth logic; star ratings collected at the end of a conversation are not persisted.
+**Responsibility:** The "BizWiz Assistant" chat widget — a bottom-right launcher button that opens a real AI-powered chat panel. Sends conversation history to a Cloudflare Worker proxy, which calls the Anthropic Claude API, and renders the reply. Falls back to canned keyword-matched answers if the proxy is unconfigured or unreachable. Holds no Firestore or Firebase Auth logic and never sees the Anthropic API key.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
 | `defineChatbotModule` (IIFE) | Wraps the entire module | — | `void` |
+| `isProxyConfigured()` | Checks whether `CHATBOT_PROXY_URL` has been set to a real deployed URL rather than left as the `"REPLACE_WITH_WORKER_URL"` placeholder | — | `boolean` |
+| `buildCatalog()` | Builds a compact, one-line-per-business text summary (name, category, active deal) from `AppData.getAllBusinesses()` so the AI assistant can reference real businesses | — | `string` (empty string if `AppData` is unavailable) |
 | `addMessage(text, sender)` | Appends a chat bubble (bot or user) to the message list and scrolls to the newest message | `text` — `string`, `sender` — `string` (`"bot"` or `"user"`) | `void` |
-| `clearOptions()` | Removes all buttons/controls currently shown in the options area below the messages | — | `void` |
-| `renderQuestionOptions()` | Renders the preloaded question buttons, plus an "End chat" button once at least one question has been answered | — | `void` |
-| `handleQuestionClick(index)` | Handles a click on a preloaded question: echoes the question as a user bubble, shows its canned answer as a bot bubble, and re-renders the options | `index` — `number` (index into the scripted question list) | `void` |
-| `endConversation()` | Ends the question phase, prompts the user with a closing message, and renders the star-rating control | — | `void` |
-| `renderRating()` | Renders the 1–5 star rating control in the options area, including hover-to-preview fill and click-to-submit behavior | — | `void` |
-| `fillStars(count)` | Inner helper of `renderRating` that visually fills a given number of stars to preview or confirm a rating | `count` — `number` (how many stars to fill) | `void` |
-| `handleRating(value)` | Records the user's star selection as a chat bubble, shows the "Thank you for your feedback!" message, clears the options, and marks the conversation as ended | `value` — `number` (chosen rating, 1–5) | `void` |
-| `resetConversation()` | Clears all messages and options and resets the conversation's internal state flags | — | `void` |
-| `startConversation()` | Starts a fresh conversation: shows the greeting message and renders the initial question list | — | `void` |
-| `openChat()` | Opens the chat window, starting a brand-new conversation if none is in progress or the previous one already ended | — | `void` |
+| `showTyping()` | Shows an animated "assistant is typing" indicator bubble while waiting for a reply | — | `void` |
+| `hideTyping()` | Removes the typing indicator if one is currently shown | — | `void` |
+| `renderStarters()` | Renders the six starter-question chips in the options area, each wired to send its question when clicked | — | `void` |
+| `clearStarters()` | Removes all starter-question chips from the options area | — | `void` |
+| `fallbackAnswer(text)` | Looks up a canned answer for a message, first by exact match against a starter question, then by keyword match, for use when the AI proxy is unavailable | `text` — `string` (the user's message) | `string\|null` |
+| `sendToAssistant(history)` | Posts the conversation (plus the generated business catalog) to the Cloudflare Worker proxy and resolves with the AI's reply text; rejects if the proxy is not configured or the request fails | `history` — `Array<Object>` (`{role, content}` conversation messages) | `Promise<string>` |
+| `setBusy(busy)` | Enables or disables the message input and send button while a request is in flight | `busy` — `boolean` | `void` |
+| `handleSend(text)` | Handles a user message (typed or from a starter chip): adds it to the conversation, calls `sendToAssistant`, renders the reply or a fallback/error message, and re-enables the composer | `text` — `string` | `void` |
+| `startConversation()` | Starts a fresh conversation: clears history, shows the greeting message, and renders the starter chips | — | `void` |
+| `openChat()` | Opens the chat window, starting the conversation on first open, and focuses the message input | — | `void` |
 | `closeChat()` | Hides the chat window and updates the launcher's expanded state | — | `void` |
 | `toggleChat()` | Opens the chat window if it is hidden, or closes it if it is open | — | `void` |
-| `init()` | Caches DOM references for the launcher, window, message list, and options area, and binds the launcher/close click handlers; does nothing if the chatbot markup is absent from the page | — | `void` |
+| `init()` | Caches DOM references for the launcher, window, messages, options, form, input, and send button, and binds the launcher/close/submit handlers; does nothing if the chatbot markup is absent from the page | — | `void` |
 
 **Exposed namespace:** `window.AppChatbot`
+
+---
+
+### `worker/src/index.js` (Cloudflare Worker backend)
+
+**Responsibility:** Keeps the Anthropic API key secret on the server side, validates and bounds incoming chat requests from `js/chatbot.js`, calls the Claude API (`claude-sonnet-4-6`) with the BizWiz system prompt, and returns the reply with CORS headers applied. This file is deployed to Cloudflare Workers — it is not part of the static site bundle and is not loaded by `index.html`.
+
+| Function | Purpose | Parameters | Returns |
+|----------|---------|------------|---------|
+| `buildCorsHeaders(origin)` | Builds the CORS response headers, allowing the request's origin only if it appears in the `ALLOWED_ORIGINS` allow-list (otherwise defaults to the first allowed origin) | `origin` — `string` (the request's `Origin` header) | `Object` (headers map) |
+| `jsonResponse(payload, status, origin)` | Builds a JSON `Response` with the appropriate CORS and `Content-Type` headers | `payload` — `Object`, `status` — `number`, `origin` — `string` | `Response` |
+| `sanitizeMessages(rawMessages)` | Validates the untrusted `messages` array from the request body: rejects non-array/empty input, keeps only the most recent 20 messages, enforces a 2000-character cap per message, requires alternating `user`/`assistant` roles with non-empty string content, and requires the conversation to end on a `user` turn | `rawMessages` — `*` (untrusted request body field) | `Array<Object>\|null` |
+| `handleRequest(request, env)` | The Worker's entry point: handles CORS preflight, rejects non-`POST` methods, confirms the `ANTHROPIC_API_KEY` secret is set, parses and sanitizes the request body, optionally folds the client-supplied business catalog into the system prompt, calls the Claude API via `@anthropic-ai/sdk`, and returns the assistant's reply (or a JSON error) | `request` — `Request`, `env` — `Object` (Worker environment, holds `ANTHROPIC_API_KEY`) | `Promise<Response>` |
+
+**Exposed via:** `export default { fetch: handleRequest }` — the standard Cloudflare Worker module entry point (not a `window` namespace, since this code never runs in a browser).
 
 ---
 

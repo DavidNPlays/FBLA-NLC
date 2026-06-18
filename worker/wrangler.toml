@@ -1,0 +1,7 @@
+# wrangler.toml — Cloudflare Worker config for the BizWiz Assistant proxy.
+# The ANTHROPIC_API_KEY is NOT stored here. Set it as a secret:
+#   npx wrangler secret put ANTHROPIC_API_KEY
+name = "bizwiz-assistant"
+main = "src/index.js"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]

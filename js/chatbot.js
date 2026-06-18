@@ -1,72 +1,115 @@
 /*
-  chatbot.js — Guided help assistant (no AI, no free-text input).
-  Responsibility: run a scripted help conversation inside the chat window. The
-  user only clicks preloaded questions; the bot replies with canned answers.
-  After the first answer an "End chat" button appears; ending the chat prompts a
-  1–5 star rating and then shows a thank-you message. This module owns only the
-  chatbot widget and holds no business, Firestore, or auth logic.
+  chatbot.js — BizWiz Assistant: an AI help chatbot powered by the Anthropic
+  Claude API (claude-sonnet-4-6) through a Cloudflare Worker proxy.
+  Responsibility: own the chat widget. It sends the conversation to the Worker
+  (which holds the API key) and renders the AI's replies. If the proxy is not
+  configured or is unreachable, it falls back to canned answers for common
+  questions so the widget still helps. This module holds no business, Firestore,
+  or Firebase Auth logic, and never sees the API key.
+
+  SETUP: after deploying the Worker (see worker/README.md), set CHATBOT_PROXY_URL
+  below to your Worker URL, e.g. "https://bizwiz-assistant.<sub>.workers.dev".
 */
 
 (function defineChatbotModule() {
   "use strict";
 
   /**
-   * The preloaded questions and their canned answers.
-   * @type {Array<{question: string, answer: string}>}
+   * URL of the Cloudflare Worker proxy. Replace the placeholder after deploying
+   * the Worker. While it stays a placeholder, the widget runs in fallback mode.
+   * @type {string}
    */
-  var SCRIPTED_QUESTIONS = [
+  var CHATBOT_PROXY_URL = "REPLACE_WITH_WORKER_URL";
+
+  /**
+   * Suggested starter questions. Each also provides keywords and a canned answer
+   * used as a fallback when the AI proxy is unavailable.
+   * @type {Array<{question: string, answer: string, keywords: Array<string>}>}
+   */
+  var STARTERS = [
     {
       question: "How can I leave a review?",
       answer:
-        "Sign in with Google, open any business with the “View details” button, " +
-        "then pick a star rating and write your review in the form at the bottom.",
+        "Sign in with Google, open any business with “View details”, then pick a " +
+        "star rating and write your review in the form at the bottom.",
+      keywords: ["review", "rating", "rate", "star"],
     },
     {
       question: "How do I save a favorite?",
       answer:
         "Tap the ☆ star on any business card to save it. Your saved spots appear " +
         "under “Favorites” in the top bar. (Sign in first so we can save them.)",
+      keywords: ["favorite", "bookmark", "save", "saved"],
     },
     {
       question: "How do I claim a deal?",
       answer:
         "Open a business with “View details”, then click “Claim deal” to reveal " +
         "its coupon code. You’ll need to be signed in first.",
+      keywords: ["deal", "coupon", "claim", "code", "discount"],
     },
     {
       question: "How do I search or filter?",
       answer:
         "Type in the search bar up top to filter as you type, tap a category pill " +
         "to narrow by type, or use the Sort dropdown to sort by rating or name.",
+      keywords: ["search", "filter", "category", "sort", "find"],
     },
     {
       question: "Why do I need to sign in?",
       answer:
         "Signing in with Google (and its 2-step verification) keeps bots out, so " +
         "only real people can post reviews, save favorites, and claim deals.",
+      keywords: ["sign in", "signin", "log in", "login", "google", "account"],
     },
     {
       question: "How do I export my favorites?",
       answer:
         "Open “Favorites” in the top bar, then click “Export report” to download " +
         "them or “Print” to print the list.",
+      keywords: ["export", "print", "report", "download"],
     },
   ];
 
   /** Cached DOM elements, populated in init(). */
   var elements = {};
 
+  /** The running conversation sent to the model: [{role, content}, ...]. */
+  var conversationMessages = [];
+
+  /** Whether a request to the assistant is currently in flight. */
+  var isAwaiting = false;
+
   /** Whether the conversation has been started (greeting shown). */
   var hasStarted = false;
 
-  /** Number of questions the user has had answered this conversation. */
-  var answeredCount = 0;
-
-  /** Whether the conversation has finished (rating submitted). */
-  var hasEnded = false;
+  /**
+   * Whether the Worker proxy URL has been configured.
+   * @returns {boolean} True if a real proxy URL is set.
+   */
+  function isProxyConfigured() {
+    return CHATBOT_PROXY_URL.indexOf("REPLACE_WITH") === -1 && CHATBOT_PROXY_URL.indexOf("http") === 0;
+  }
 
   /**
-   * Append a chat bubble to the message list and scroll to the newest message.
+   * Build a compact catalog string of current businesses for the assistant.
+   * @returns {string} One line per business, or "" if the catalog is unavailable.
+   */
+  function buildCatalog() {
+    if (!window.AppData || !window.AppData.getAllBusinesses) {
+      return "";
+    }
+    return window.AppData
+      .getAllBusinesses()
+      .map(function (business) {
+        var deal = business.deal ? " — Deal: " + business.deal.title : "";
+        return "- " + business.name + " (" + business.category + ")" + deal;
+      })
+      .join("\n");
+  }
+
+  /**
+   * Append a chat bubble and scroll to the newest message.
    * @param {string} text The message text.
    * @param {string} sender Either "bot" or "user".
    * @returns {void}
@@ -80,164 +123,196 @@
   }
 
   /**
-   * Remove all option buttons from the options area.
+   * Show an animated "assistant is typing" indicator.
    * @returns {void}
    */
-  function clearOptions() {
-    elements.options.innerHTML = "";
+  function showTyping() {
+    var typing = document.createElement("div");
+    typing.className = "chat-bubble chat-bubble--bot chat-typing";
+    typing.id = "chat-typing";
+    typing.innerHTML = "<span></span><span></span><span></span>";
+    elements.messages.appendChild(typing);
+    elements.messages.scrollTop = elements.messages.scrollHeight;
   }
 
   /**
-   * Render the question buttons (and an "End chat" button once a question has
-   * been answered) in the options area.
+   * Remove the typing indicator if present.
    * @returns {void}
    */
-  function renderQuestionOptions() {
-    clearOptions();
-    SCRIPTED_QUESTIONS.forEach(function (item, index) {
+  function hideTyping() {
+    var typing = document.getElementById("chat-typing");
+    if (typing) {
+      typing.remove();
+    }
+  }
+
+  /**
+   * Render the starter-question chips in the options area.
+   * @returns {void}
+   */
+  function renderStarters() {
+    elements.options.innerHTML = "";
+    STARTERS.forEach(function (item) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "chatbot-option";
       button.textContent = item.question;
       button.addEventListener("click", function () {
-        handleQuestionClick(index);
+        handleSend(item.question);
       });
       elements.options.appendChild(button);
     });
+  }
 
-    if (answeredCount > 0) {
-      var endButton = document.createElement("button");
-      endButton.type = "button";
-      endButton.className = "chatbot-option chatbot-option--end";
-      endButton.textContent = "End chat";
-      endButton.addEventListener("click", endConversation);
-      elements.options.appendChild(endButton);
+  /**
+   * Clear the starter-question chips.
+   * @returns {void}
+   */
+  function clearStarters() {
+    elements.options.innerHTML = "";
+  }
+
+  /**
+   * Find a canned fallback answer for a message (used when the AI is unavailable).
+   * @param {string} text The user's message.
+   * @returns {string|null} A canned answer, or null if none matches.
+   */
+  function fallbackAnswer(text) {
+    var lower = text.toLowerCase();
+    var index;
+    for (index = 0; index < STARTERS.length; index++) {
+      if (lower === STARTERS[index].question.toLowerCase()) {
+        return STARTERS[index].answer;
+      }
     }
-  }
-
-  /**
-   * Handle a click on one of the preloaded questions.
-   * @param {number} index The index of the clicked question.
-   * @returns {void}
-   */
-  function handleQuestionClick(index) {
-    var item = SCRIPTED_QUESTIONS[index];
-    addMessage(item.question, "user");
-    addMessage(item.answer, "bot");
-    answeredCount += 1;
-    renderQuestionOptions();
-  }
-
-  /**
-   * End the question phase and prompt the user to rate their experience.
-   * @returns {void}
-   */
-  function endConversation() {
-    clearOptions();
-    addMessage("Before you go, how would you rate your experience?", "bot");
-    renderRating();
-  }
-
-  /**
-   * Render the 1–5 star rating control in the options area.
-   * @returns {void}
-   */
-  function renderRating() {
-    clearOptions();
-    var stars = document.createElement("div");
-    stars.className = "chatbot-rating";
-
-    var starButtons = [];
-    for (var value = 1; value <= 5; value++) {
-      var star = document.createElement("button");
-      star.type = "button";
-      star.className = "chatbot-star";
-      star.textContent = "☆";
-      star.setAttribute("data-value", String(value));
-      star.setAttribute("aria-label", value + (value === 1 ? " star" : " stars"));
-      starButtons.push(star);
-      stars.appendChild(star);
+    for (index = 0; index < STARTERS.length; index++) {
+      var matched = STARTERS[index].keywords.some(function (keyword) {
+        return lower.indexOf(keyword) !== -1;
+      });
+      if (matched) {
+        return STARTERS[index].answer;
+      }
     }
+    return null;
+  }
 
-    /**
-     * Visually fill the stars up to a given count.
-     * @param {number} count How many stars to fill.
-     * @returns {void}
-     */
-    function fillStars(count) {
-      starButtons.forEach(function (star, starIndex) {
-        var filled = starIndex < count;
-        star.textContent = filled ? "★" : "☆";
-        star.classList.toggle("is-filled", filled);
-      });
+  /**
+   * Send the current conversation to the Worker proxy and get the AI reply.
+   * @param {Array<Object>} history The conversation messages.
+   * @returns {Promise<string>} Resolves with the assistant's reply text.
+   */
+  function sendToAssistant(history) {
+    if (!isProxyConfigured()) {
+      return Promise.reject(new Error("not-configured"));
     }
-
-    starButtons.forEach(function (star, starIndex) {
-      star.addEventListener("mouseenter", function () {
-        fillStars(starIndex + 1);
+    var payload = { messages: history };
+    var catalog = buildCatalog();
+    if (catalog) {
+      payload.catalog = catalog;
+    }
+    return fetch(CHATBOT_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("bad-status");
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        if (!data || data.error || !data.reply) {
+          throw new Error("no-reply");
+        }
+        return data.reply;
       });
-      star.addEventListener("click", function () {
-        handleRating(starIndex + 1);
-      });
-    });
-    stars.addEventListener("mouseleave", function () {
-      fillStars(0);
-    });
-
-    elements.options.appendChild(stars);
   }
 
   /**
-   * Record the rating and show the thank-you message.
-   * @param {number} value The chosen rating from 1 to 5.
+   * Enable or disable the composer while a request is in flight.
+   * @param {boolean} busy Whether a request is awaiting a reply.
    * @returns {void}
    */
-  function handleRating(value) {
-    addMessage(value + (value === 1 ? " star" : " stars"), "user");
-    addMessage("Thank you for your feedback!", "bot");
-    clearOptions();
-    hasEnded = true;
-    hasStarted = false;
+  function setBusy(busy) {
+    isAwaiting = busy;
+    elements.input.disabled = busy;
+    elements.send.disabled = busy;
   }
 
   /**
-   * Reset the conversation back to its starting state.
+   * Handle a user message (typed or from a starter chip).
+   * @param {string} text The message text.
    * @returns {void}
    */
-  function resetConversation() {
-    elements.messages.innerHTML = "";
-    clearOptions();
-    hasStarted = false;
-    answeredCount = 0;
-    hasEnded = false;
+  function handleSend(text) {
+    var trimmed = (text || "").trim();
+    if (!trimmed || isAwaiting) {
+      return;
+    }
+    clearStarters();
+    addMessage(trimmed, "user");
+    conversationMessages.push({ role: "user", content: trimmed });
+    elements.input.value = "";
+    setBusy(true);
+    showTyping();
+
+    sendToAssistant(conversationMessages)
+      .then(function (reply) {
+        hideTyping();
+        addMessage(reply, "bot");
+        conversationMessages.push({ role: "assistant", content: reply });
+      })
+      .catch(function (error) {
+        hideTyping();
+        var fallback = fallbackAnswer(trimmed);
+        if (fallback) {
+          addMessage(fallback, "bot");
+          conversationMessages.push({ role: "assistant", content: fallback });
+        } else if (error.message === "not-configured") {
+          addMessage(
+            "The live assistant isn’t connected yet. In the meantime, pick one of the suggested questions below.",
+            "bot"
+          );
+          renderStarters();
+        } else {
+          addMessage(
+            "Sorry, I’m having trouble reaching the assistant right now. Please try again in a moment.",
+            "bot"
+          );
+        }
+      })
+      .then(function () {
+        setBusy(false);
+        elements.input.focus();
+      });
   }
 
   /**
-   * Start a fresh conversation with a greeting and the question list.
+   * Start a fresh conversation with a greeting and the starter chips.
    * @returns {void}
    */
   function startConversation() {
     hasStarted = true;
-    answeredCount = 0;
-    hasEnded = false;
+    conversationMessages = [];
     addMessage(
-      "Hi! I’m the BizWiz assistant. 👋 Pick a question below and I’ll help you out.",
+      "Hi! I’m the BizWiz Assistant. 👋 Ask me anything about using BizWiz, or pick a question below.",
       "bot"
     );
-    renderQuestionOptions();
+    renderStarters();
   }
 
   /**
-   * Open the chat window, starting a fresh conversation when needed.
+   * Open the chat window, starting the conversation on first open.
    * @returns {void}
    */
   function openChat() {
-    if (hasEnded || !hasStarted) {
-      resetConversation();
+    if (!hasStarted) {
       startConversation();
     }
     elements.window.hidden = false;
     elements.launcher.setAttribute("aria-expanded", "true");
+    elements.input.focus();
   }
 
   /**
@@ -262,8 +337,8 @@
   }
 
   /**
-   * Cache DOM references and bind the launcher and close events. Safe to call
-   * even if the chatbot markup is absent (it simply does nothing).
+   * Cache DOM references and bind events. Safe to call even if the chatbot
+   * markup is absent (it simply does nothing).
    * @returns {void}
    */
   function init() {
@@ -272,9 +347,12 @@
       window: document.getElementById("chatbot-window"),
       messages: document.getElementById("chatbot-messages"),
       options: document.getElementById("chatbot-options"),
+      form: document.getElementById("chatbot-form"),
+      input: document.getElementById("chatbot-input"),
+      send: document.getElementById("chatbot-send"),
     };
 
-    if (!elements.launcher || !elements.window) {
+    if (!elements.launcher || !elements.window || !elements.form) {
       return;
     }
 
@@ -285,6 +363,11 @@
     if (closeButton) {
       closeButton.addEventListener("click", closeChat);
     }
+
+    elements.form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      handleSend(elements.input.value);
+    });
   }
 
   /**
