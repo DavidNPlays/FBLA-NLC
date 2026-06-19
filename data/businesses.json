@@ -2,41 +2,33 @@
   "businesses": [
     {
       "id": "market-square-cafe",
-      "name": "Market Square Cafe",
+      "name": "Egg Harbor Café",
       "category": "Cafes & Bakeries",
-      "address": "12 Market Square, Lake Forest, IL 60045",
-      "phone": "(847) 234-1100",
-      "website": "https://example.com/market-square-cafe",
-      "description": "Cozy corner cafe in historic Market Square serving single-origin coffee, fresh-baked scones, and seasonal pastries.",
-      "hours": "Mon-Fri 6:30am-6pm, Sat-Sun 7am-5pm",
-      "icon": "☕",
+      "address": "512 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 295-3449",
+      "website": "https://eggharborcafe.com/lake-forest",
+      "description": "Third-generation family-owned breakfast, brunch, and lunch cafe with a full barista bar, fresh-baked muffins, and griddle favorites.",
+      "hours": "Mon-Sun 7am-2pm",
+      "icon": "🍳",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 41,
-        "count": 9
-      },
       "deal": {
         "title": "Free pastry with any large coffee",
-        "code": "SQUARE-PASTRY",
-        "description": "Show this code at the register to get a free pastry of the day with the purchase of any large coffee. One per customer per visit."
+        "code": "HARBOR-PASTRY",
+        "description": "Show this code at the register to get a free baked pastry of the day with the purchase of any large coffee. One per customer per visit."
       },
       "image": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "deerpath-books",
-      "name": "Deerpath Books & Gifts",
+      "name": "Lake Forest Book Store",
       "category": "Books & Gifts",
-      "address": "287 E Deerpath, Lake Forest, IL 60045",
-      "phone": "(847) 234-2210",
-      "website": "https://example.com/deerpath-books",
-      "description": "Independent bookshop with hand-picked staff favorites, a children's reading nook, and locally made gifts.",
-      "hours": "Mon-Sat 10am-7pm, Sun 11am-4pm",
+      "address": "662 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 234-4420",
+      "website": "https://www.lakeforestbookstore.com",
+      "description": "Beloved independent bookshop founded in 1949, with hand-picked staff favorites, author events, gifts, and a children's section, right across from the train station.",
+      "hours": "Mon-Fri 10am-5:30pm, Sat 10am-5pm, Sun closed",
       "icon": "📚",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 47,
-        "count": 10
-      },
       "deal": {
         "title": "15% off any one book",
         "code": "READ-LOCAL15",
@@ -46,19 +38,15 @@
     },
     {
       "id": "western-thread",
-      "name": "Western & Thread Boutique",
+      "name": "Sara Campbell",
       "category": "Retail & Boutiques",
-      "address": "654 N Western Ave, Lake Forest, IL 60045",
-      "phone": "(847) 234-3320",
-      "website": "https://example.com/western-thread",
-      "description": "Curated women's clothing and accessories from independent designers, with seasonal trunk shows.",
-      "hours": "Mon-Sat 10am-6pm, Sun closed",
+      "address": "221 E Westminster, Lake Forest, IL 60045",
+      "phone": "(847) 234-6416",
+      "website": "https://shopmarketsquare.com/saracampbell.html",
+      "description": "Women's boutique offering classic, USA-made dresses, separates, and accessories for every occasion.",
+      "hours": "Mon-Sat 10am-5pm, Sun closed",
       "icon": "👗",
       "priceLevel": "$$$",
-      "seedRating": {
-        "sum": 33,
-        "count": 8
-      },
       "deal": {
         "title": "$20 off purchases of $100+",
         "code": "THREAD20",
@@ -68,63 +56,51 @@
     },
     {
       "id": "bank-lane-bistro",
-      "name": "Bank Lane Bistro",
+      "name": "The Left Bank",
       "category": "Restaurants",
-      "address": "16 Bank Lane, Lake Forest, IL 60045",
-      "phone": "(847) 234-4430",
-      "website": "https://example.com/bank-lane-bistro",
-      "description": "Farm-to-table American bistro with a rotating seasonal menu and a quiet patio off Market Square.",
-      "hours": "Tue-Sun 11am-9pm, Mon closed",
+      "address": "659 N Bank Ln, Lake Forest, IL 60045",
+      "phone": "(847) 234-4770",
+      "website": "https://www.facebook.com/LeftBankLF/",
+      "description": "Easygoing Bank Lane spot for sandwiches, hot dogs, salads, and quick lunches in the heart of downtown Lake Forest.",
+      "hours": "Mon-Sat 11am-7pm, Sun closed",
       "icon": "🍽️",
-      "priceLevel": "$$$",
-      "seedRating": {
-        "sum": 52,
-        "count": 11
-      },
+      "priceLevel": "$$",
       "deal": {
-        "title": "Complimentary dessert with two entrees",
-        "code": "BISTRO-SWEET",
-        "description": "Order two entrees and receive one complimentary dessert to share. Dine-in only, after 5pm."
+        "title": "Free cookie with any sandwich combo",
+        "code": "LEFTBANK-TREAT",
+        "description": "Order any sandwich combo and get a free fresh-baked cookie. Dine-in or carryout, one per order."
       },
       "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "forest-greens",
-      "name": "Forest Greens Juice Bar",
+      "name": "LF Juice Shop",
       "category": "Restaurants",
-      "address": "920 S Waukegan Rd, Lake Forest, IL 60045",
-      "phone": "(847) 234-5540",
-      "website": "https://example.com/forest-greens",
-      "description": "Cold-pressed juices, smoothie bowls, and grab-and-go salads made fresh every morning.",
-      "hours": "Mon-Sat 7am-7pm, Sun 8am-4pm",
+      "address": "647 N Bank Ln, Lake Forest, IL 60045",
+      "phone": "(847) 235-2090",
+      "website": "https://www.lfjuiceshop.com",
+      "description": "Cold-pressed juices, smoothies, acai bowls, and grab-and-go wellness shots made fresh on Bank Lane.",
+      "hours": "Mon-Sat 8am-5pm, Sun 9am-3pm",
       "icon": "🥤",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 38,
-        "count": 9
-      },
       "deal": {
         "title": "Buy one smoothie, get one half off",
-        "code": "GREENS-BOGO",
+        "code": "JUICE-BOGO",
         "description": "Buy any smoothie and get a second of equal or lesser value at half price. Valid weekdays before noon."
       },
       "image": "https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "telegraph-tune",
-      "name": "Telegraph Tune-Up Auto",
+      "name": "Lake Forest Auto Repair",
       "category": "Services",
-      "address": "1450 S Telegraph Rd, Lake Forest, IL 60045",
-      "phone": "(847) 234-6650",
-      "website": "https://example.com/telegraph-tune",
-      "description": "Family-owned auto repair and maintenance shop trusted for honest estimates and quick turnarounds.",
-      "hours": "Mon-Fri 7:30am-6pm, Sat 8am-2pm",
+      "address": "530 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 234-3738",
+      "website": "https://example.com/lake-forest-auto-repair",
+      "description": "Trusted local auto repair and maintenance shop on Western Avenue known for honest estimates and quick turnarounds.",
+      "hours": "Mon-Fri 8am-5:30pm, Sat-Sun closed",
       "icon": "🔧",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 44,
-        "count": 10
-      },
       "deal": {
         "title": "$15 off any oil change",
         "code": "TUNE-OIL15",
@@ -134,19 +110,15 @@
     },
     {
       "id": "westleigh-wellness",
-      "name": "Westleigh Wellness Spa",
+      "name": "Victoria Day Spa",
       "category": "Health & Beauty",
-      "address": "75 Westleigh Rd, Lake Forest, IL 60045",
-      "phone": "(847) 234-7760",
-      "website": "https://example.com/westleigh-wellness",
-      "description": "Day spa offering massage, facials, and skincare treatments in a calm, modern setting.",
-      "hours": "Tue-Sat 9am-7pm, Sun-Mon closed",
+      "address": "2 Market Square Ct, Lake Forest, IL 60045",
+      "phone": "(847) 615-1755",
+      "website": "https://example.com/victoria-day-spa",
+      "description": "Market Square day spa offering massage, facials, waxing, and skincare treatments in a calm, welcoming setting.",
+      "hours": "Tue-Sat 9am-6pm, Sun-Mon closed",
       "icon": "💆",
       "priceLevel": "$$$",
-      "seedRating": {
-        "sum": 49,
-        "count": 11
-      },
       "deal": {
         "title": "20% off your first facial",
         "code": "WELL-FIRST20",
@@ -156,63 +128,51 @@
     },
     {
       "id": "everett-fitness",
-      "name": "Everett Road Fitness",
+      "name": "Fitness Together",
       "category": "Fitness",
-      "address": "300 W Everett Rd, Lake Forest, IL 60045",
-      "phone": "(847) 234-8870",
-      "website": "https://example.com/everett-fitness",
-      "description": "Boutique gym with strength equipment, small-group classes, and personal training.",
-      "hours": "Mon-Fri 5am-10pm, Sat-Sun 7am-6pm",
+      "address": "225 E Deerpath Rd, Suite 126, Lake Forest, IL 60045",
+      "phone": "(847) 283-6060",
+      "website": "https://fitnesstogether.com/lakeforest",
+      "description": "Private, one-on-one personal training studio with custom strength and conditioning programs by appointment.",
+      "hours": "Mon-Fri 6am-8pm, Sat 7am-1pm, Sun closed",
       "icon": "🏋️",
-      "priceLevel": "$$",
-      "seedRating": {
-        "sum": 36,
-        "count": 9
-      },
+      "priceLevel": "$$$",
       "deal": {
-        "title": "One free week trial pass",
-        "code": "EVERETT-WEEK",
-        "description": "Enjoy seven days of full gym and class access at no cost. New members only, one per person."
+        "title": "Free intro personal-training session",
+        "code": "FT-INTRO",
+        "description": "New clients get a complimentary one-on-one intro training session and fitness assessment. By appointment only."
       },
       "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "lakeside-pizza",
-      "name": "Lakeside Pizza Co.",
+      "name": "Ferentino's Pizzeria East",
       "category": "Restaurants",
-      "address": "540 N Western Ave, Lake Forest, IL 60045",
-      "phone": "(847) 234-9980",
-      "website": "https://example.com/lakeside-pizza",
-      "description": "Neighborhood pizzeria known for thin-crust pies, house salads, and family carryout deals.",
-      "hours": "Mon-Sun 11am-10pm",
+      "address": "842 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 295-8888",
+      "website": "https://www.ferentinospizzeria.com",
+      "description": "Neighborhood pizzeria on Western Avenue known for thin-crust pies, pastas, and family carryout.",
+      "hours": "Mon-Sun 11am-9pm",
       "icon": "🍕",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 45,
-        "count": 10
-      },
       "deal": {
         "title": "Free order of garlic knots with any large pizza",
-        "code": "LAKE-KNOTS",
+        "code": "FERENTINO-KNOTS",
         "description": "Add a free order of garlic knots when you buy any large pizza. Carryout and dine-in."
       },
       "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "deerpath-dental",
-      "name": "Deerpath Family Dental",
+      "name": "Deerpath Orthodontics & Family Dental",
       "category": "Health & Beauty",
-      "address": "410 E Deerpath, Lake Forest, IL 60045",
-      "phone": "(847) 235-1010",
-      "website": "https://example.com/deerpath-dental",
-      "description": "Gentle family and cosmetic dentistry with same-week appointments and modern equipment.",
-      "hours": "Mon-Thu 8am-5pm, Fri 8am-1pm",
+      "address": "560 Oakwood Ave, Suite 102, Lake Forest, IL 60045",
+      "phone": "(847) 579-4979",
+      "website": "https://dodlf.com",
+      "description": "Family, cosmetic, and orthodontic dentistry on Oakwood Avenue with modern equipment and gentle, personalized care.",
+      "hours": "Mon-Thu 8am-5pm, Fri 8am-1pm, Sat-Sun closed",
       "icon": "🦷",
       "priceLevel": "$$$",
-      "seedRating": {
-        "sum": 40,
-        "count": 9
-      },
       "deal": {
         "title": "$49 new-patient cleaning & exam",
         "code": "DENTAL-NEW49",
@@ -222,41 +182,33 @@
     },
     {
       "id": "market-square-toys",
-      "name": "Market Square Toy Shop",
+      "name": "Sage Explorers",
       "category": "Books & Gifts",
-      "address": "8 Market Square, Lake Forest, IL 60045",
-      "phone": "(847) 235-2020",
-      "website": "https://example.com/market-square-toys",
-      "description": "Classic toy store with puzzles, games, and educational toys plus free gift wrapping.",
+      "address": "644 N Bank Ln, Lake Forest, IL 60045",
+      "phone": "(224) 271-2135",
+      "website": "https://example.com/sage-explorers",
+      "description": "Toy and learning shop on Bank Lane with STEM kits, games, puzzles, and hands-on classes for curious kids.",
       "hours": "Mon-Sat 10am-6pm, Sun 11am-4pm",
       "icon": "🧸",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 43,
-        "count": 10
-      },
       "deal": {
         "title": "Buy two games, get one 50% off",
-        "code": "TOYS-GAME50",
+        "code": "SAGE-GAME50",
         "description": "Purchase two board games and take 50% off a third of equal or lesser value."
       },
       "image": "https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "north-shore-cleaners",
-      "name": "North Shore Cleaners",
+      "name": "Forest Cleaners & Tailors",
       "category": "Services",
-      "address": "215 E Westminster, Lake Forest, IL 60045",
-      "phone": "(847) 235-3030",
-      "website": "https://example.com/north-shore-cleaners",
-      "description": "Eco-friendly dry cleaning and tailoring with free local pickup and delivery.",
-      "hours": "Mon-Fri 7am-7pm, Sat 8am-4pm",
+      "address": "840 S Waukegan Rd, Ste 103, Lake Forest, IL 60045",
+      "phone": "(847) 234-7270",
+      "website": "https://example.com/forest-cleaners-tailors",
+      "description": "Dry cleaning, laundry, and expert on-site tailoring and alterations near Waukegan Road.",
+      "hours": "Mon-Fri 7am-7pm, Sat 8am-4pm, Sun closed",
       "icon": "👔",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 35,
-        "count": 8
-      },
       "deal": {
         "title": "20% off your first dry-cleaning order",
         "code": "CLEAN-FIRST20",
@@ -266,41 +218,33 @@
     },
     {
       "id": "willow-bakery",
-      "name": "Willow Lane Bakery",
+      "name": "Gerhard's Elegant European Desserts",
       "category": "Cafes & Bakeries",
-      "address": "133 E Wisconsin Ave, Lake Forest, IL 60045",
-      "phone": "(847) 235-4040",
-      "website": "https://example.com/willow-bakery",
-      "description": "Small-batch bakery specializing in sourdough, custom cakes, and gluten-free treats.",
-      "hours": "Tue-Sun 7am-4pm, Mon closed",
-      "icon": "🥐",
+      "address": "720 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 234-0023",
+      "website": "https://www.gerhardsdesserts.com",
+      "description": "Old-world European bakery famous for tortes, pastries, custom cakes, and house-made chocolates on Western Avenue.",
+      "hours": "Tue-Sat 9am-6pm, Sun 10am-3pm, Mon closed",
+      "icon": "🍰",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 50,
-        "count": 11
-      },
       "deal": {
-        "title": "Free loaf of sourdough with $25 purchase",
-        "code": "WILLOW-LOAF",
-        "description": "Spend $25 or more and take home a free classic sourdough loaf while supplies last."
+        "title": "Free mini pastry with any $25 purchase",
+        "code": "GERHARD-TREAT",
+        "description": "Spend $25 or more and choose a free mini pastry from the case. While supplies last."
       },
       "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "lake-forest-flowers",
-      "name": "Lake Forest Flower Studio",
+      "name": "Lake Forest Flowers",
       "category": "Retail & Boutiques",
-      "address": "22 Bank Lane, Lake Forest, IL 60045",
-      "phone": "(847) 235-5050",
-      "website": "https://example.com/lake-forest-flowers",
-      "description": "Boutique florist creating seasonal arrangements, wedding florals, and same-day local delivery.",
-      "hours": "Mon-Sat 9am-6pm, Sun closed",
+      "address": "546 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 234-0017",
+      "website": "https://lakeforestflowers.com",
+      "description": "Full-service florist creating seasonal arrangements, wedding and event florals, and same-day local delivery.",
+      "hours": "Mon-Fri 9am-5pm, Sat 9am-3pm, Sun closed",
       "icon": "💐",
       "priceLevel": "$$$",
-      "seedRating": {
-        "sum": 39,
-        "count": 9
-      },
       "deal": {
         "title": "10% off any arrangement",
         "code": "BLOOM10",
@@ -310,41 +254,33 @@
     },
     {
       "id": "scoops-creamery",
-      "name": "Scoops Creamery",
+      "name": "Sweet's",
       "category": "Restaurants",
-      "address": "60 E Deerpath, Lake Forest, IL 60045",
-      "phone": "(847) 235-6060",
-      "website": "https://example.com/scoops-creamery",
-      "description": "Handmade ice cream and sorbet in rotating flavors, with dairy-free and sugar-free options.",
-      "hours": "Mon-Sun 12pm-9pm",
+      "address": "260 E Deerpath Rd, Lake Forest, IL 60045",
+      "phone": "(847) 295-1111",
+      "website": "https://sweetschocolates.com",
+      "description": "Old-fashioned chocolate and ice cream shop serving house-made toffee, truffles, and hand-dipped treats since 1982.",
+      "hours": "Mon-Sun 11am-9pm",
       "icon": "🍦",
       "priceLevel": "$",
-      "seedRating": {
-        "sum": 46,
-        "count": 10
-      },
       "deal": {
         "title": "Free topping on any sundae",
-        "code": "SCOOPS-TOP",
+        "code": "SWEETS-TOP",
         "description": "Add any one topping to your sundae for free. One per customer per visit."
       },
       "image": "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=800&q=70&auto=format&fit=crop"
     },
     {
       "id": "ridge-hardware",
-      "name": "Ridge Road Hardware",
+      "name": "Lake Forest True Value Hardware, Cards & Gifts",
       "category": "Services",
-      "address": "880 N Ridge Rd, Lake Forest, IL 60045",
-      "phone": "(847) 235-7070",
-      "website": "https://example.com/ridge-hardware",
-      "description": "Neighborhood hardware store with tools, paint, garden supplies, and friendly project advice.",
-      "hours": "Mon-Sat 8am-7pm, Sun 9am-5pm",
+      "address": "825 S Waukegan Rd, Lake Forest, IL 60045",
+      "phone": "(847) 615-8949",
+      "website": "https://lakeforesthardwarecardsandgifts.com",
+      "description": "Neighborhood hardware store with tools, paint, garden and home supplies, plus cards and gifts and friendly project advice.",
+      "hours": "Mon-Fri 8am-7pm, Sat 8am-6pm, Sun 9am-5pm",
       "icon": "🔨",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 42,
-        "count": 10
-      },
       "deal": {
         "title": "$10 off purchases of $50+",
         "code": "RIDGE10",
@@ -354,19 +290,15 @@
     },
     {
       "id": "harborview-yoga",
-      "name": "Harborview Yoga Studio",
+      "name": "Forever Om Yoga",
       "category": "Fitness",
-      "address": "145 E Illinois Rd, Lake Forest, IL 60045",
-      "phone": "(847) 235-8080",
-      "website": "https://example.com/harborview-yoga",
-      "description": "Welcoming yoga studio offering vinyasa, restorative, and beginner classes for all levels.",
+      "address": "828 N Western Ave, Lake Forest, IL 60045",
+      "phone": "(847) 482-9642",
+      "website": "https://www.foreveromyoga.com",
+      "description": "Downtown hot-yoga studio specializing in power vinyasa, beginner-friendly classes, and athlete recovery.",
       "hours": "Mon-Sun 6am-8pm",
       "icon": "🧘",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 48,
-        "count": 11
-      },
       "deal": {
         "title": "First class free",
         "code": "YOGA-FREE1",
@@ -376,23 +308,19 @@
     },
     {
       "id": "cornerstone-coffee",
-      "name": "Cornerstone Coffee Roasters",
+      "name": "Hometown Coffee & Juice",
       "category": "Cafes & Bakeries",
-      "address": "501 N Western Ave, Lake Forest, IL 60045",
-      "phone": "(847) 235-9090",
-      "website": "https://example.com/cornerstone-coffee",
-      "description": "Micro-roastery and espresso bar with house-roasted beans and a quiet study-friendly loft.",
-      "hours": "Mon-Fri 6am-7pm, Sat-Sun 7am-6pm",
-      "icon": "🫘",
+      "address": "231 E Wisconsin Ave, Lake Forest, IL 60045",
+      "phone": "(224) 880-0070",
+      "website": "https://hometowncoffeejuice.com",
+      "description": "Independent coffee and juice bar on Wisconsin Avenue pouring espresso, cold brew, smoothies, and fresh-pressed juices.",
+      "hours": "Mon-Fri 7am-5pm, Sat-Sun 8am-4pm",
+      "icon": "☕",
       "priceLevel": "$$",
-      "seedRating": {
-        "sum": 51,
-        "count": 11
-      },
       "deal": {
-        "title": "$2 off any bag of whole-bean coffee",
-        "code": "CORNER-BEAN2",
-        "description": "Take $2 off any retail bag of our house-roasted whole-bean coffee."
+        "title": "$1 off any specialty latte or smoothie",
+        "code": "HOMETOWN-SIP",
+        "description": "Take $1 off any specialty latte, cold brew, or smoothie. One per customer per visit."
       },
       "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=70&auto=format&fit=crop"
     }
