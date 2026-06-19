@@ -1,4 +1,4 @@
-# BizWiz — Program Documentation
+# Local Lift — Program Documentation
 
 **FBLA Coding & Programming 2025–2026**
 Lake Forest, Illinois
@@ -25,7 +25,7 @@ Lake Forest, Illinois
 
 ## 1. Project Overview & Purpose
 
-**BizWiz** is a local-business discovery web application built for Lake Forest, Illinois. It helps residents and visitors find, explore, review, bookmark, and claim exclusive deals from small local businesses — primarily around the historic Market Square district.
+**Local Lift** is a local-business discovery web application built for Lake Forest, Illinois. It helps residents and visitors find, explore, review, bookmark, and claim exclusive deals from small local businesses — primarily around the historic Market Square district.
 
 The app was created as an FBLA Coding & Programming project for the 2025–2026 school year. Its goal is to drive community engagement with local commerce by giving businesses a digital presence and giving users the tools to interact with those businesses meaningfully.
 
@@ -113,7 +113,7 @@ A "? Help" button in the header opens a how-to modal summarizing search, filteri
 
 ### Chatbot Assistant (Real AI, Powered by Llama 3.3 via Cloudflare Workers AI)
 
-A circular launcher button fixed to the bottom-right corner of every page opens the "BizWiz Assistant" chat panel. The assistant is a **real conversational AI** — it is powered by Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`), run by **Cloudflare Workers AI** and reached through a Cloudflare Worker proxy. Inference runs entirely on Cloudflare's network through the Worker's built-in `AI` binding, so there is no external API key to manage and no separate AI billing — Workers AI has a free daily allowance. Users can either click one of six starter-question chips (e.g., "How can I leave a review?") or type any free-text question into the composer at the bottom of the panel.
+A circular launcher button fixed to the bottom-right corner of every page opens the "Local Lift Assistant" chat panel. The assistant is a **real conversational AI** — it is powered by Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`), run by **Cloudflare Workers AI** and reached through a Cloudflare Worker proxy. Inference runs entirely on Cloudflare's network through the Worker's built-in `AI` binding, so there is no external API key to manage and no separate AI billing — Workers AI has a free daily allowance. Users can either click one of six starter-question chips (e.g., "How can I leave a review?") or type any free-text question into the composer at the bottom of the panel.
 
 When a message is sent, it is appended to the running conversation and posted to the Worker proxy along with a compact, auto-generated catalog of the current businesses (name, category, and active deal) so the assistant can answer with real, up-to-date information instead of guessing. While waiting for a reply, an animated "assistant is typing" indicator (three bouncing dots) is shown in place of the next message. The composer is disabled during this time to prevent duplicate sends.
 
@@ -127,7 +127,7 @@ The chatbot widget owns no business logic itself: it never reads or writes Fires
 
 ## 3. Design System
 
-BizWiz follows a single, consistent visual language referred to internally as the **BizWiz design system**. It is implemented entirely in `css/styles.css` using CSS custom properties (design tokens) defined on `:root`.
+Local Lift follows a single, consistent visual language referred to internally as the **Local Lift design system**. It is implemented entirely in `css/styles.css` using CSS custom properties (design tokens) defined on `:root`.
 
 ### Color palette
 
@@ -173,7 +173,7 @@ The layout adapts at three breakpoints, all implemented as `max-width` media que
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Markup | HTML5 | Single page (`index.html`), semantic elements, ARIA attributes |
-| Styling | CSS3 | Custom properties (design tokens), CSS Grid/Flexbox, keyframe animations, the BizWiz design system |
+| Styling | CSS3 | Custom properties (design tokens), CSS Grid/Flexbox, keyframe animations, the Local Lift design system |
 | Logic | Vanilla JavaScript (ES5-compatible) | No frameworks, no build step, no npm |
 | Auth | Firebase Authentication (Google provider) | Loaded via CDN compat build |
 | Database | Firebase Firestore | Loaded via CDN compat build |
@@ -228,7 +228,7 @@ The only file that calls Firebase Auth methods. Signs users in via Google popup,
 Handles all DOM manipulation and rendering. Builds the business card grid (including photo media with a gradient+emoji fallback), the category filter pills, the detail modal (including its photo hero), the favorites modal, the review form, the star display, and the toast notification. Translates user interactions (clicks, form submissions, keyboard events) into calls on handler callbacks provided by `app.js`. Never touches Firestore or Firebase Auth.
 
 **`js/chatbot.js`**
-Runs the "BizWiz Assistant" chat widget: a bottom-right launcher button that opens a chat panel backed by a **real AI model**. It sends the running conversation (and a compact catalog summary built from `AppData.getAllBusinesses()`) to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via the Workers AI binding and returns the model's reply. The widget shows a typing indicator while waiting, renders the AI's reply as a chat bubble, and supports both free-text input and clickable starter-question chips. If the Worker proxy URL is not configured or the request fails, it falls back to a small set of canned keyword-matched answers so the widget still helps. This module holds no business data of its own and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js` (aside from the one read-only call into `AppData` to build the catalog summary). There is no API key involved anywhere in this flow — the Worker's `AI` binding handles authentication with Cloudflare's infrastructure automatically.
+Runs the "Local Lift Assistant" chat widget: a bottom-right launcher button that opens a chat panel backed by a **real AI model**. It sends the running conversation (and a compact catalog summary built from `AppData.getAllBusinesses()`) to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via the Workers AI binding and returns the model's reply. The widget shows a typing indicator while waiting, renders the AI's reply as a chat bubble, and supports both free-text input and clickable starter-question chips. If the Worker proxy URL is not configured or the request fails, it falls back to a small set of canned keyword-matched answers so the widget still helps. This module holds no business data of its own and never touches Firestore or Firebase Auth; it is entirely independent of `data.js`, `storage.js`, and `auth.js` (aside from the one read-only call into `AppData` to build the catalog summary). There is no API key involved anywhere in this flow — the Worker's `AI` binding handles authentication with Cloudflare's infrastructure automatically.
 
 **`js/app.js`**
 The main controller. Wires all modules together at startup, holds the current session state (which businesses are bookmarked, which deals are claimed, the current search/filter/sort query), and implements every user intent handler. Also initializes the chatbot widget (`AppChatbot.init()`) if it is present. Contains no direct DOM, Firestore, or Firebase Auth calls — it delegates to the dedicated modules.
@@ -242,19 +242,19 @@ js/chatbot.js (browser)
       |  POST { messages, catalog }
       v
 worker/src/index.js  (Cloudflare Worker)
-      |  validates + bounds the request, adds the BizWiz system prompt
+      |  validates + bounds the request, adds the Local Lift system prompt
       |  calls env.AI.run(...) — the Workers AI binding (no API key involved)
       v
 Cloudflare Workers AI — Meta Llama 3.3 70B
 (@cf/meta/llama-3.3-70b-instruct-fp8-fast)
 ```
 
-**Why a proxy is still used:** BizWiz is a static site with no server-side code of its own — anything placed in `js/chatbot.js` is downloadable by anyone who opens the browser's developer tools. The Worker exists so request validation, rate-limiting-style bounds, and the BizWiz system prompt are enforced server-side rather than trusted to the client. The security story is simpler than a typical AI proxy, though: because the Worker calls the model through its `AI` binding (`env.AI`) rather than an external HTTP API, **there is no API key or secret of any kind to store, rotate, or leak** — Cloudflare authenticates the binding automatically based on which Worker is running.
+**Why a proxy is still used:** Local Lift is a static site with no server-side code of its own — anything placed in `js/chatbot.js` is downloadable by anyone who opens the browser's developer tools. The Worker exists so request validation, rate-limiting-style bounds, and the Local Lift system prompt are enforced server-side rather than trusted to the client. The security story is simpler than a typical AI proxy, though: because the Worker calls the model through its `AI` binding (`env.AI`) rather than an external HTTP API, **there is no API key or secret of any kind to store, rotate, or leak** — Cloudflare authenticates the binding automatically based on which Worker is running.
 
 **What the Worker does (`worker/src/index.js`):**
 - Accepts only `POST` requests (and `OPTIONS` preflight requests for CORS) from a fixed allow-list of origins (the Firebase Hosting domains plus common localhost ports for local testing).
 - Validates and trims the incoming conversation: rejects malformed payloads, caps the conversation to the most recent 20 messages, caps each message to 2000 characters, and requires the conversation to end on a user turn.
-- Prepends a fixed system prompt describing BizWiz and what the assistant should and should not do, optionally appending the business catalog string sent by the client.
+- Prepends a fixed system prompt describing Local Lift and what the assistant should and should not do, optionally appending the business catalog string sent by the client.
 - Calls the Workers AI binding (`env.AI.run(MODEL_ID, { messages, max_tokens })`) to run Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) and returns the model's text reply as JSON, with CORS headers applied.
 - Returns a clear JSON error (and an appropriate HTTP status) if the request is invalid, the `AI` binding is unavailable, or the model call fails — `js/chatbot.js` treats any of these as a signal to fall back to canned answers.
 
@@ -575,7 +575,7 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `js/ui.js`
 
-**Responsibility:** All DOM manipulation and rendering, including the BizWiz design system's pill-shaped filters and photo media. Never touches Firestore or Firebase Auth.
+**Responsibility:** All DOM manipulation and rendering, including the Local Lift design system's pill-shaped filters and photo media. Never touches Firestore or Firebase Auth.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
@@ -613,7 +613,7 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `js/chatbot.js`
 
-**Responsibility:** The "BizWiz Assistant" chat widget — a bottom-right launcher button that opens a real AI-powered chat panel. Sends conversation history to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via Cloudflare Workers AI and returns the reply. Falls back to canned keyword-matched answers if the proxy is unconfigured or unreachable. Holds no Firestore or Firebase Auth logic. There is no API key anywhere in this flow — the Worker's `AI` binding authenticates with Cloudflare's infrastructure automatically.
+**Responsibility:** The "Local Lift Assistant" chat widget — a bottom-right launcher button that opens a real AI-powered chat panel. Sends conversation history to a Cloudflare Worker proxy, which runs Meta's Llama 3.3 70B model via Cloudflare Workers AI and returns the reply. Falls back to canned keyword-matched answers if the proxy is unconfigured or unreachable. Holds no Firestore or Firebase Auth logic. There is no API key anywhere in this flow — the Worker's `AI` binding authenticates with Cloudflare's infrastructure automatically.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
@@ -641,7 +641,7 @@ This section lists every public and private function in each JavaScript module. 
 
 ### `worker/src/index.js` (Cloudflare Worker backend)
 
-**Responsibility:** Validates and bounds incoming chat requests from `js/chatbot.js`, runs Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) through the Workers AI binding (`env.AI`) with the BizWiz system prompt, and returns the reply with CORS headers applied. Because inference runs through Cloudflare's own `AI` binding rather than an external HTTP API, the Worker holds no API key or secret of any kind. This file is deployed to Cloudflare Workers — it is not part of the static site bundle and is not loaded by `index.html`.
+**Responsibility:** Validates and bounds incoming chat requests from `js/chatbot.js`, runs Meta's Llama 3.3 70B model (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) through the Workers AI binding (`env.AI`) with the Local Lift system prompt, and returns the reply with CORS headers applied. Because inference runs through Cloudflare's own `AI` binding rather than an external HTTP API, the Worker holds no API key or secret of any kind. This file is deployed to Cloudflare Workers — it is not part of the static site bundle and is not loaded by `index.html`.
 
 | Function | Purpose | Parameters | Returns |
 |----------|---------|------------|---------|
@@ -688,4 +688,4 @@ This section lists every public and private function in each JavaScript module. 
 
 ---
 
-*Documentation generated for FBLA Coding & Programming 2025–2026. BizWiz — Lake Forest, Illinois.*
+*Documentation generated for FBLA Coding & Programming 2025–2026. Local Lift — Lake Forest, Illinois.*

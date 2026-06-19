@@ -1,4 +1,6 @@
-# wrangler.toml — Cloudflare Worker config for the BizWiz Assistant.
+# wrangler.toml — Cloudflare Worker config for the Local Lift Assistant.
+# (The worker keeps the name "bizwiz-assistant" so its deployed URL — which
+#  js/chatbot.js points at — stays stable.)
 # Inference runs on Cloudflare Workers AI (Meta Llama 3.3 70B) via the AI
 # binding below — there is no API key or secret to manage.
 name = "bizwiz-assistant"

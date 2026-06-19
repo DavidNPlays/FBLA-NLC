@@ -1,9 +1,10 @@
 /*
   ui.js — All DOM manipulation and rendering.
-  Responsibility: build and update the page from data, and translate user
-  interactions into calls on a set of handler callbacks provided by app.js.
-  This module never touches Firestore or Firebase Auth directly; it only renders
-  and emits intent, keeping presentation separate from data and auth logic.
+  Responsibility: build and update the page from data, switch between the home,
+  business-detail, and favorites views, and translate user interactions into
+  calls on a set of handler callbacks provided by app.js. This module never
+  touches Firestore or Firebase Auth directly; it only renders and emits intent,
+  keeping presentation separate from data and auth logic.
 */
 
 (function defineUiModule() {
@@ -15,7 +16,7 @@
    */
   var handlers = {};
 
-  /** The business currently shown in the detail modal, or null. */
+  /** The business currently shown on the detail page, or null. */
   var activeBusiness = null;
 
   /** The currently selected category filter ("all" or a category name). */
@@ -102,14 +103,15 @@
   }
 
   /**
-   * Read the current values of the search, category, and sort controls.
-   * @returns {{searchTerm: string, category: string, sortBy: string}} Query options.
+   * Read the current values of the search, category, rating, and sort controls.
+   * @returns {{searchTerm: string, category: string, sortBy: string, minRating: number}} Query options.
    */
   function getControlValues() {
     return {
       searchTerm: elements.searchInput.value,
       category: activeCategory,
       sortBy: elements.sortSelect.value,
+      minRating: parseFloat(elements.ratingSelect.value) || 0,
     };
   }
 
@@ -121,6 +123,25 @@
     if (handlers.onQueryChange) {
       handlers.onQueryChange(getControlValues());
     }
+  }
+
+  /**
+   * Switch which top-level view is visible and scroll to the top.
+   * @param {string} name One of "home", "business", or "favorites".
+   * @returns {void}
+   */
+  function showView(name) {
+    var views = {
+      home: elements.viewHome,
+      business: elements.viewBusiness,
+      favorites: elements.viewFavorites,
+    };
+    Object.keys(views).forEach(function (key) {
+      if (views[key]) {
+        views[key].hidden = key !== name;
+      }
+    });
+    window.scrollTo(0, 0);
   }
 
   /**
@@ -268,23 +289,31 @@
   }
 
   /**
-   * Update a single card's bookmark button without re-rendering the grid.
-   * @param {string} businessId The business whose button should change.
+   * Update every bookmark toggle for a business (grid card and detail page).
+   * @param {string} businessId The business whose buttons should change.
    * @param {boolean} isBookmarked The new bookmark state.
    * @returns {void}
    */
-  function setCardBookmarkState(businessId, isBookmarked) {
-    var selector = '.card__bookmark[data-business-id="' + businessId + '"]';
-    var button = elements.businessGrid.querySelector(selector);
-    if (button) {
+  function setBookmarkState(businessId, isBookmarked) {
+    var selector = '[data-action="bookmark"][data-business-id="' + businessId + '"]';
+    document.querySelectorAll(selector).forEach(function (button) {
       button.classList.toggle("is-active", isBookmarked);
-      button.textContent = isBookmarked ? "★" : "☆";
+      var icon = button.querySelector("[data-bookmark-icon]");
+      var label = button.querySelector("[data-bookmark-label]");
+      if (icon) {
+        icon.textContent = isBookmarked ? "★" : "☆";
+      } else {
+        button.textContent = isBookmarked ? "★" : "☆";
+      }
+      if (label) {
+        label.textContent = isBookmarked ? "Saved" : "Save";
+      }
       button.setAttribute("aria-label", isBookmarked ? "Remove bookmark" : "Add bookmark");
-    }
+    });
   }
 
   /**
-   * Build the HTML for the list of review cards shown in the detail modal.
+   * Build the HTML for the list of review cards shown on the detail page.
    * @param {Array<Object>} reviews Review records ({userName, rating, text, createdAt}).
    * @returns {string} The reviews HTML, or an empty-state message.
    */
@@ -358,7 +387,7 @@
   }
 
   /**
-   * Build the photo hero (or gradient+emoji fallback) for the detail modal.
+   * Build the photo hero (or gradient+emoji fallback) for the detail page.
    * @param {Object} business The business being shown.
    * @param {number} average The average rating.
    * @param {number} count The number of ratings.
@@ -372,9 +401,9 @@
       '<span class="detail-hero__badge">' +
       escapeHtml(business.category) +
       "</span>" +
-      '<h2 class="detail-hero__title" id="modal-business-name">' +
+      '<h1 class="detail-hero__title" id="business-detail-name">' +
       escapeHtml(business.name) +
-      "</h2>" +
+      "</h1>" +
       '<div class="detail-hero__rating">' +
       buildStars(average) +
       "<span>" +
@@ -409,15 +438,64 @@
   }
 
   /**
-   * Render the full business detail modal and open it.
+   * Build the "Save to favorites" toggle shown on the detail page.
+   * @param {Object} business The business being shown.
+   * @param {boolean} isBookmarked Whether the business is already saved.
+   * @returns {string} The button HTML.
+   */
+  function buildDetailBookmark(business, isBookmarked) {
+    return (
+      '<button class="button button--secondary detail-bookmark' +
+      (isBookmarked ? " is-active" : "") +
+      '" type="button" data-action="bookmark" data-business-id="' +
+      escapeHtml(business.id) +
+      '" aria-label="' +
+      (isBookmarked ? "Remove bookmark" : "Add bookmark") +
+      '"><span data-bookmark-icon aria-hidden="true">' +
+      (isBookmarked ? "★" : "☆") +
+      '</span><span data-bookmark-label>' +
+      (isBookmarked ? "Saved" : "Save") +
+      "</span></button>"
+    );
+  }
+
+  /**
+   * Build an embedded Google Map and an "open in Maps" link for a business.
+   * @param {Object} business The business to map (uses its name and address).
+   * @returns {string} The map section HTML.
+   */
+  function buildMapSection(business) {
+    var place = encodeURIComponent(business.name + " " + (business.address || ""));
+    var embedSrc = "https://www.google.com/maps?q=" + place + "&output=embed";
+    var linkHref = "https://www.google.com/maps/search/?api=1&query=" + place;
+    return (
+      '<div class="detail-section">' +
+      '<div class="section-title">Location</div>' +
+      '<div class="detail-map">' +
+      '<iframe class="detail-map__frame" title="Map of ' +
+      escapeHtml(business.name) +
+      '" src="' +
+      embedSrc +
+      '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' +
+      "</div>" +
+      '<a class="detail-map__link" href="' +
+      linkHref +
+      '" target="_blank" rel="noopener">Open in Google Maps ↗</a>' +
+      "</div>"
+    );
+  }
+
+  /**
+   * Render the full business detail page and switch to it.
    * @param {Object} business The business to display.
    * @param {Object} state View state.
-   * @param {Array<Object>} state.reviews Reviews for this business.
+   * @param {Array<Object>} state.reviews Reviews for this business (seed + live).
    * @param {boolean} state.isSignedIn Whether the user is signed in.
    * @param {boolean} state.isDealClaimed Whether the user already claimed the deal.
+   * @param {boolean} state.isBookmarked Whether the business is in the user's favorites.
    * @returns {void}
    */
-  function openBusinessModal(business, state) {
+  function renderBusinessPage(business, state) {
     activeBusiness = business;
     var average = window.AppData.getAverageRating(business);
     var count = window.AppData.getRatingCount(business);
@@ -444,8 +522,11 @@
         "</div>"
       : "";
 
-    elements.modalBody.innerHTML =
+    elements.businessPage.innerHTML =
       buildDetailHero(business, average, count) +
+      '<div class="detail-actions">' +
+      buildDetailBookmark(business, !!state.isBookmarked) +
+      "</div>" +
       '<div class="detail-section">' +
       '<div class="info-card">' +
       '<div class="section-title">About</div>' +
@@ -465,6 +546,7 @@
       "</div>" +
       "</div>" +
       "</div>" +
+      buildMapSection(business) +
       dealHtml +
       '<div class="detail-section">' +
       '<div class="section-title">Reviews</div>' +
@@ -474,17 +556,17 @@
       buildReviewForm(state.isSignedIn) +
       "</div>";
 
-    bindImageFallbacks(elements.modalBody);
-    openModal(elements.businessModal);
-    bindModalDynamicEvents(business);
+    bindImageFallbacks(elements.businessPage);
+    bindDetailDynamicEvents(business);
+    showView("business");
   }
 
   /**
-   * Wire up the claim-deal button and review form inside the open modal.
-   * @param {Object} business The business shown in the modal.
+   * Wire up the claim-deal button and review form on the open detail page.
+   * @param {Object} business The business shown on the page.
    * @returns {void}
    */
-  function bindModalDynamicEvents(business) {
+  function bindDetailDynamicEvents(business) {
     var claimButton = document.getElementById("claim-deal");
     if (claimButton) {
       claimButton.addEventListener("click", function () {
@@ -519,11 +601,11 @@
   }
 
   /**
-   * Replace the reviews list inside the open modal (after a new review posts).
+   * Replace the reviews list on the detail page (after a new review posts).
    * @param {Array<Object>} reviews The updated list of reviews.
    * @returns {void}
    */
-  function renderModalReviews(reviews) {
+  function renderBusinessReviews(reviews) {
     var list = document.getElementById("reviews-list");
     if (list) {
       list.innerHTML = buildReviewsHtml(reviews);
@@ -535,7 +617,7 @@
   }
 
   /**
-   * Reveal the deal code and remove the claim button in the open modal.
+   * Reveal the deal code and remove the claim button on the detail page.
    * @returns {void}
    */
   function revealDealCode() {
@@ -550,48 +632,161 @@
   }
 
   /**
-   * Render the favorites modal with the user's bookmarked businesses.
+   * Build one favorite row (thumbnail, name link, meta, remove button).
+   * @param {Object} business The favorited business.
+   * @returns {string} The row HTML.
+   */
+  function buildFavoriteRow(business) {
+    var average = window.AppData.getAverageRating(business);
+    var thumb = business.image
+      ? '<img class="favorite-row__thumb" data-photo src="' +
+        escapeHtml(business.image) +
+        '" alt="" loading="lazy" />'
+      : '<div class="favorite-row__thumb favorite-row__thumb--fallback"><span aria-hidden="true">' +
+        escapeHtml(business.icon || "🏪") +
+        "</span></div>";
+    return (
+      '<div class="favorite-row">' +
+      thumb +
+      '<div class="favorite-row__body">' +
+      '<a class="favorite-row__name" href="#/business/' +
+      encodeURIComponent(business.id) +
+      '">' +
+      escapeHtml(business.name) +
+      "</a>" +
+      '<div class="favorite-row__meta">' +
+      escapeHtml(business.category) +
+      " · " +
+      (average > 0 ? average.toFixed(1) + " ★" : "No ratings") +
+      "</div>" +
+      "</div>" +
+      '<button class="favorite-row__remove" type="button" data-action="remove-favorite" ' +
+      'data-business-id="' +
+      escapeHtml(business.id) +
+      '">Remove</button>' +
+      "</div>"
+    );
+  }
+
+  /**
+   * Build a recommendation card linking to a suggested business.
+   * @param {Object} business The recommended business.
+   * @param {Object<string, boolean>} favoriteCategories Categories the user favorites.
+   * @returns {string} The recommendation card HTML.
+   */
+  function buildRecommendationCard(business, favoriteCategories) {
+    var average = window.AppData.getAverageRating(business);
+    var ratingText = average > 0 ? average.toFixed(1) + " ★" : "New";
+    var why = favoriteCategories[business.category]
+      ? "Because you like " + business.category
+      : "Highly rated near you";
+    var media = business.image
+      ? '<img class="rec-card__photo" data-photo src="' +
+        escapeHtml(business.image) +
+        '" alt="" loading="lazy" />'
+      : '<span class="rec-card__emoji" aria-hidden="true">' +
+        escapeHtml(business.icon || "🏪") +
+        "</span>";
+    return (
+      '<a class="rec-card" href="#/business/' +
+      encodeURIComponent(business.id) +
+      '">' +
+      '<div class="rec-card__media">' +
+      media +
+      "</div>" +
+      '<div class="rec-card__body">' +
+      '<div class="rec-card__name">' +
+      escapeHtml(business.name) +
+      "</div>" +
+      '<div class="rec-card__meta">' +
+      escapeHtml(business.category) +
+      " · " +
+      escapeHtml(ratingText) +
+      "</div>" +
+      '<div class="rec-card__why">' +
+      escapeHtml(why) +
+      "</div>" +
+      "</div>" +
+      "</a>"
+    );
+  }
+
+  /**
+   * Build the "Recommended for you" block, or a prompt to favorite more.
+   * @param {Array<Object>} favorites The user's favorites.
+   * @param {Array<Object>} recommendations The suggested businesses.
+   * @returns {string} The recommendations section HTML.
+   */
+  function buildRecommendationsSection(favorites, recommendations) {
+    if (!favorites || favorites.length < 2) {
+      return (
+        '<section class="recommendations">' +
+        '<h2 class="recommendations__title">Recommended for you</h2>' +
+        '<p class="recommendations__empty">Favorite at least 2 businesses and we’ll ' +
+        "suggest more spots you’ll love here.</p>" +
+        "</section>"
+      );
+    }
+    var favoriteCategories = {};
+    favorites.forEach(function (favorite) {
+      favoriteCategories[favorite.category] = true;
+    });
+    var cards = recommendations
+      .map(function (business) {
+        return buildRecommendationCard(business, favoriteCategories);
+      })
+      .join("");
+    return (
+      '<section class="recommendations">' +
+      '<h2 class="recommendations__title">Recommended for you</h2>' +
+      '<p class="recommendations__sub">Picked from the businesses you’ve favorited.</p>' +
+      '<div class="rec-grid">' +
+      cards +
+      "</div>" +
+      "</section>"
+    );
+  }
+
+  /**
+   * Render the favorites page (saved businesses plus recommendations).
    * @param {Array<Object>} favorites The bookmarked businesses.
+   * @param {Array<Object>} recommendations Suggested businesses (may be empty).
    * @returns {void}
    */
-  function openFavoritesModal(favorites) {
+  function renderFavoritesPage(favorites, recommendations) {
+    var listHtml;
     if (!favorites || favorites.length === 0) {
-      elements.favoritesList.innerHTML =
+      listHtml =
         '<p class="favorites-empty">You have no favorites yet. Tap the ☆ on any ' +
         "business to save it here.</p>";
     } else {
-      elements.favoritesList.innerHTML = favorites
-        .map(function (business) {
-          var average = window.AppData.getAverageRating(business);
-          var thumb = business.image
-            ? '<img class="favorite-row__thumb" data-photo src="' +
-              escapeHtml(business.image) +
-              '" alt="" loading="lazy" />'
-            : '<div class="favorite-row__thumb"></div>';
-          return (
-            '<div class="favorite-row">' +
-            thumb +
-            '<div class="favorite-row__body">' +
-            '<div class="favorite-row__name">' +
-            escapeHtml(business.name) +
-            "</div>" +
-            '<div class="favorite-row__meta">' +
-            escapeHtml(business.category) +
-            " · " +
-            (average > 0 ? average.toFixed(1) + " ★" : "No ratings") +
-            "</div>" +
-            "</div>" +
-            '<button class="favorite-row__remove" type="button" data-action="remove-favorite" ' +
-            'data-business-id="' +
-            escapeHtml(business.id) +
-            '">Remove</button>' +
-            "</div>"
-          );
-        })
-        .join("");
-      bindImageFallbacks(elements.favoritesList);
+      listHtml =
+        '<div class="favorites-list">' +
+        favorites
+          .map(function (business) {
+            return buildFavoriteRow(business);
+          })
+          .join("") +
+        "</div>";
     }
-    openModal(elements.favoritesModal);
+
+    elements.favoritesPage.innerHTML =
+      '<div class="favorites-header">' +
+      '<div class="favorites-header__heading">' +
+      '<h1 class="page-title">Your favorites</h1>' +
+      '<p class="page-subtitle">Saved spots and tailored recommendations.</p>' +
+      "</div>" +
+      '<div class="favorites-header__actions">' +
+      '<button class="button button--secondary button--small" type="button" data-action="print-report">Print</button>' +
+      '<button class="button button--secondary button--small" type="button" data-action="export-report">Export</button>' +
+      '<button class="button button--primary button--small" type="button" data-action="pdf-report"><span aria-hidden="true">📄</span><span>PDF Report</span></button>' +
+      "</div>" +
+      "</div>" +
+      listHtml +
+      buildRecommendationsSection(favorites, recommendations);
+
+    bindImageFallbacks(elements.favoritesPage);
+    showView("favorites");
   }
 
   /**
@@ -660,7 +855,6 @@
       modal.hidden = true;
     });
     document.body.style.overflow = "";
-    activeBusiness = null;
   }
 
   /**
@@ -691,19 +885,22 @@
     handlers = providedHandlers || {};
 
     elements = {
+      viewHome: document.getElementById("view-home"),
+      viewBusiness: document.getElementById("view-business"),
+      viewFavorites: document.getElementById("view-favorites"),
       searchInput: document.getElementById("search-input"),
       searchForm: document.getElementById("search-form"),
       categoryFilters: document.getElementById("category-filters"),
+      ratingSelect: document.getElementById("rating-select"),
       sortSelect: document.getElementById("sort-select"),
       resultsSummary: document.getElementById("results-summary"),
       businessGrid: document.getElementById("business-grid"),
       emptyState: document.getElementById("empty-state"),
-      businessModal: document.getElementById("business-modal"),
-      modalBody: document.getElementById("modal-body"),
-      favoritesModal: document.getElementById("favorites-modal"),
-      favoritesList: document.getElementById("favorites-list"),
+      businessPage: document.getElementById("business-page"),
+      favoritesPage: document.getElementById("favorites-page"),
       favoritesButton: document.getElementById("favorites-button"),
       favoritesCount: document.getElementById("favorites-count"),
+      pdfReportButton: document.getElementById("pdf-report-button"),
       helpButton: document.getElementById("help-button"),
       helpModal: document.getElementById("help-modal"),
       signInButton: document.getElementById("sign-in-button"),
@@ -711,18 +908,17 @@
       userChip: document.getElementById("user-chip"),
       userName: document.getElementById("user-name"),
       userAvatar: document.getElementById("user-avatar"),
-      printFavorites: document.getElementById("print-favorites"),
-      exportFavorites: document.getElementById("export-favorites"),
       toast: document.getElementById("toast"),
     };
 
     // Real-time search (updates as the user types).
     elements.searchInput.addEventListener("input", emitQueryChange);
-    // The hero search button submits the form; keep it from reloading the page.
+    // The hero search form has no button; just keep Enter from reloading.
     elements.searchForm.addEventListener("submit", function (event) {
       event.preventDefault();
       emitQueryChange();
     });
+    elements.ratingSelect.addEventListener("change", emitQueryChange);
     elements.sortSelect.addEventListener("change", emitQueryChange);
 
     // Category pill filters (delegated).
@@ -745,20 +941,15 @@
       openModal(elements.helpModal);
     });
 
-    // Favorites button + export/print.
+    // Favorites nav button navigates to the favorites page.
     elements.favoritesButton.addEventListener("click", function () {
-      if (handlers.onOpenFavorites) {
-        handlers.onOpenFavorites();
-      }
+      window.location.hash = "#/favorites";
     });
-    elements.exportFavorites.addEventListener("click", function () {
-      if (handlers.onExportFavorites) {
-        handlers.onExportFavorites();
-      }
-    });
-    elements.printFavorites.addEventListener("click", function () {
-      if (handlers.onPrintFavorites) {
-        handlers.onPrintFavorites();
+
+    // PDF Report nav button generates the printable report.
+    elements.pdfReportButton.addEventListener("click", function () {
+      if (handlers.onPdfReport) {
+        handlers.onPdfReport();
       }
     });
 
@@ -770,18 +961,36 @@
       }
       var businessId = trigger.getAttribute("data-business-id");
       var action = trigger.getAttribute("data-action");
-      if (action === "open" && handlers.onOpenBusiness) {
-        handlers.onOpenBusiness(businessId);
+      if (action === "open") {
+        window.location.hash = "#/business/" + encodeURIComponent(businessId);
       } else if (action === "bookmark" && handlers.onToggleBookmark) {
         handlers.onToggleBookmark(businessId);
       }
     });
 
-    // Delegated clicks inside the favorites list (remove favorite).
-    elements.favoritesList.addEventListener("click", function (event) {
-      var trigger = event.target.closest('[data-action="remove-favorite"]');
-      if (trigger && handlers.onRemoveFavorite) {
+    // Delegated clicks on the detail page (toggle bookmark).
+    elements.businessPage.addEventListener("click", function (event) {
+      var trigger = event.target.closest('[data-action="bookmark"]');
+      if (trigger && handlers.onToggleBookmark) {
+        handlers.onToggleBookmark(trigger.getAttribute("data-business-id"));
+      }
+    });
+
+    // Delegated clicks on the favorites page (remove favorite, report actions).
+    elements.favoritesPage.addEventListener("click", function (event) {
+      var trigger = event.target.closest("[data-action]");
+      if (!trigger) {
+        return;
+      }
+      var action = trigger.getAttribute("data-action");
+      if (action === "remove-favorite" && handlers.onRemoveFavorite) {
         handlers.onRemoveFavorite(trigger.getAttribute("data-business-id"));
+      } else if (action === "export-report" && handlers.onExportFavorites) {
+        handlers.onExportFavorites();
+      } else if (action === "print-report" && handlers.onPrintFavorites) {
+        handlers.onPrintFavorites();
+      } else if (action === "pdf-report" && handlers.onPdfReport) {
+        handlers.onPdfReport();
       }
     });
 
@@ -804,11 +1013,12 @@
     init: init,
     populateCategories: populateCategories,
     renderBusinesses: renderBusinesses,
-    setCardBookmarkState: setCardBookmarkState,
-    openBusinessModal: openBusinessModal,
-    renderModalReviews: renderModalReviews,
+    setBookmarkState: setBookmarkState,
+    showView: showView,
+    renderBusinessPage: renderBusinessPage,
+    renderBusinessReviews: renderBusinessReviews,
     revealDealCode: revealDealCode,
-    openFavoritesModal: openFavoritesModal,
+    renderFavoritesPage: renderFavoritesPage,
     updateFavoritesCount: updateFavoritesCount,
     updateAuthState: updateAuthState,
     showToast: showToast,

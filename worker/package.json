@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Cloudflare Worker for the BizWiz Assistant (Cloudflare Workers AI / Llama 3.3 70B).",
+  "description": "Cloudflare Worker for the Local Lift Assistant (Cloudflare Workers AI / Llama 3.3 70B).",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"

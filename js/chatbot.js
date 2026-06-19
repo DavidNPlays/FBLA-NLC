@@ -1,5 +1,5 @@
 /*
-  chatbot.js — BizWiz Assistant: an AI help chatbot powered by Cloudflare
+  chatbot.js — Local Lift Assistant: an AI help chatbot powered by Cloudflare
   Workers AI (Meta Llama 3.3 70B) through a Cloudflare Worker proxy.
   Responsibility: own the chat widget. It sends the conversation to the Worker
   (which runs the model) and renders the AI's replies. If the proxy is not
@@ -467,7 +467,7 @@
     hasStarted = true;
     conversationMessages = [];
     addMessage(
-      "Hi! I’m the BizWiz Assistant. 👋 Ask me anything about using BizWiz, or pick a question below.",
+      "Hi! I’m the Local Lift Assistant. 👋 Ask me anything about using Local Lift, or pick a question below.",
       "bot"
     );
     renderStarters();

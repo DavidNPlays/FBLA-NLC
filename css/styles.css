@@ -1,10 +1,10 @@
 /*
-  styles.css — All visual styling for BizWiz.
+  styles.css — All visual styling for Local Lift.
   Responsibility: layout, typography, color system, and animations following the
-  BizWiz design system: cool lavender/blue branding, gold reserved for ratings,
-  white content between a near-black nav and near-black footer, pill shapes on
-  every clickable element, depth from soft shadows, and a small scale-up on
-  hover. Contains no behavior/logic.
+  Local Lift design system: cool lavender/blue branding, gold reserved for
+  ratings, white content between a near-black nav and near-black footer, pill
+  shapes on every clickable element, depth from soft shadows, and a small
+  scale-up on hover. Contains no behavior/logic.
 */
 
 /* ===================== Design tokens ===================== */
@@ -47,7 +47,8 @@
   --transition-fast: 140ms ease;
   --transition: 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
 
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --text-shadow-soft: 0 2px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -76,6 +77,13 @@ h2,
 h3,
 p {
   margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 button {
@@ -109,11 +117,12 @@ img {
 
 /* ===================== Wordmark ===================== */
 .wordmark {
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.wordmark__biz {
+.wordmark__accent {
   font-style: italic;
   color: var(--color-accent-pale);
 }
@@ -193,6 +202,16 @@ img {
   font-weight: 700;
 }
 
+/*
+  Elements toggled via the `hidden` attribute that also set their own `display`
+  (buttons, the user chip, the favorites count) need this so `hidden` wins.
+*/
+.button[hidden],
+.user-chip[hidden],
+.pill-count[hidden] {
+  display: none;
+}
+
 /* ===================== Top navigation (near-black) ===================== */
 .site-header {
   position: sticky;
@@ -205,18 +224,25 @@ img {
 .site-header__inner {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 14px var(--space);
+  padding: 16px var(--space);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space);
+  gap: 18px;
   flex-wrap: wrap;
 }
 
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: baseline;
   gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.brand:hover {
+  opacity: 0.85;
 }
 
 .brand__name {
@@ -226,13 +252,19 @@ img {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .location-tag {
   color: var(--color-lavender);
-  margin-right: 4px;
 }
 
 .auth-area {
@@ -362,6 +394,13 @@ img {
 .filter-pill.is-active {
   background: var(--color-periwinkle);
   color: #fff;
+}
+
+.controls__fields {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .sort-field {
@@ -1026,6 +1065,242 @@ img {
   color: var(--color-heading);
 }
 
+/* Larger help dialog */
+.modal__dialog--lg {
+  width: min(760px, 100%);
+}
+
+.modal__dialog--lg .modal__body {
+  padding: 34px 36px 38px;
+}
+
+#help-title {
+  font-size: 1.7rem;
+}
+
+.help-intro {
+  margin-top: 10px;
+  color: var(--color-body);
+  font-size: 1.02rem;
+}
+
+.modal__dialog--lg .help-list {
+  gap: 14px;
+}
+
+.modal__dialog--lg .help-list li {
+  font-size: 1rem;
+}
+
+/* ===================== Views & page chrome ===================== */
+.view[hidden] {
+  display: none;
+}
+
+.page--detail,
+.page--favorites {
+  max-width: 960px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  color: var(--color-periwinkle);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.back-link:hover {
+  transform: translateX(-3px);
+}
+
+/* ===================== Business detail page ===================== */
+#business-page {
+  background: var(--color-surface);
+  border-radius: var(--radius-card-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.detail-actions {
+  padding: 18px 28px 0;
+}
+
+.detail-bookmark.is-active {
+  background: var(--color-gold);
+  color: var(--color-heading);
+}
+
+.detail-bookmark [data-bookmark-icon] {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Uniform vertical rhythm between detail sections */
+.detail-section {
+  padding: 22px 28px 0;
+}
+
+.detail-section:last-child {
+  padding-bottom: 28px;
+}
+
+.detail-section .detail-deal {
+  margin-top: 0;
+}
+
+/* Embedded map */
+.detail-map {
+  border: 1.5px solid var(--color-lavender);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.detail-map__frame {
+  display: block;
+  width: 100%;
+  height: 300px;
+  border: 0;
+}
+
+.detail-map__link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--color-periwinkle);
+  font-weight: 700;
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+
+.detail-map__link:hover {
+  text-decoration: underline;
+}
+
+/* ===================== Favorites page ===================== */
+.page-title {
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  color: var(--color-heading);
+}
+
+.page-subtitle {
+  margin-top: 4px;
+  color: var(--color-body-alt);
+  font-size: 0.98rem;
+}
+
+.favorite-row__name {
+  text-decoration: none;
+}
+
+.favorite-row__name:hover {
+  color: var(--color-periwinkle);
+  text-decoration: underline;
+}
+
+.favorite-row__thumb--fallback {
+  display: grid;
+  place-items: center;
+  font-size: 1.7rem;
+}
+
+/* ===================== Recommendations ===================== */
+.recommendations {
+  margin-top: 34px;
+}
+
+.recommendations__title {
+  font-size: 1.35rem;
+  color: var(--color-heading);
+}
+
+.recommendations__sub {
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.recommendations__empty {
+  margin-top: 12px;
+  padding: 20px;
+  border: 1.5px dashed var(--color-lavender);
+  border-radius: var(--radius-card-lg);
+  background: #f6f7fc;
+  color: var(--color-body-alt);
+  font-size: 0.95rem;
+}
+
+.rec-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.rec-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-lavender);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.rec-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.rec-card__media {
+  position: relative;
+  height: 120px;
+  background: var(--hero-gradient);
+  display: grid;
+  place-items: center;
+}
+
+.rec-card__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rec-card__emoji {
+  font-size: 2.6rem;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
+}
+
+.rec-card__body {
+  padding: 12px 14px 14px;
+}
+
+.rec-card__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.rec-card__meta {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.rec-card__why {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--color-periwinkle);
+  font-weight: 700;
+}
+
 /* ===================== Chatbot assistant ===================== */
 .chatbot-launcher {
   position: fixed;
@@ -1447,6 +1722,10 @@ img {
     gap: 32px;
   }
 
+  .rec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .brand__name {
     font-size: 1.35rem;
   }
@@ -1475,6 +1754,16 @@ img {
   .business-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .rec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-actions,
+  .detail-section {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .favorites-header__actions {

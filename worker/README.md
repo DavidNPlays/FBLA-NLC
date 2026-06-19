@@ -1,6 +1,6 @@
-# BizWiz Assistant — Cloudflare Worker
+# Local Lift Assistant — Cloudflare Worker
 
-This Worker powers the BizWiz chatbot using **Cloudflare Workers AI** (Meta
+This Worker powers the Local Lift chatbot using **Cloudflare Workers AI** (Meta
 Llama 3.3 70B). Inference runs on Cloudflare's network through the `AI` binding,
 so there is **no API key or billing to set up** — just a free Cloudflare account.
 

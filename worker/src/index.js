@@ -1,8 +1,8 @@
 /*
-  worker/src/index.js — Cloudflare Worker that powers the BizWiz Assistant
+  worker/src/index.js — Cloudflare Worker that powers the Local Lift Assistant
   chatbot using Cloudflare Workers AI (Meta Llama 3.3 70B).
   Responsibility: validate and bound incoming chat requests, run the Llama model
-  via the Workers AI binding (env.AI) with a BizWiz system prompt, and return the
+  via the Workers AI binding (env.AI) with a Local Lift system prompt, and return the
   reply with CORS headers. The static site talks to this Worker; inference runs
   on Cloudflare's network, so there is no external API key to manage.
 */
@@ -28,27 +28,28 @@ var ALLOWED_ORIGINS = [
   "http://127.0.0.1:5000",
 ];
 
-/** Base system prompt describing BizWiz and how the assistant should behave. */
+/** Base system prompt describing Local Lift and how the assistant should behave. */
 var SYSTEM_PROMPT = [
-  "You are the BizWiz Assistant, a friendly guide embedded in BizWiz — a local",
+  "You are the Local Lift Assistant, a friendly guide embedded in Local Lift — a local",
   "business directory web app for Lake Forest, Illinois (an FBLA Coding &",
   "Programming project). Your job is to help visitors use the website.",
   "",
-  "What users can do on BizWiz:",
+  "What users can do on Local Lift:",
   "- Browse and SEARCH businesses (the search box at the top filters as they type).",
-  "- FILTER by category using the category pill buttons; SORT by Featured, Top rated, or Name (A–Z).",
-  "- Open any business's \"View details\" to see hours, address, phone, its deal, and reviews.",
+  "- FILTER by category using the category pill buttons; FILTER or SORT by rating (Top rated, or 3★/4★/4.5★ and up).",
+  "- Open any business's \"View details\" page to see hours, address, phone, an embedded map, its deal, and reviews.",
   "- SIGN IN with Google (top-right). Signing in is required before writing anything; Google's 2-step verification keeps out bots.",
   "- Leave REVIEWS and star ratings (must be signed in).",
-  "- BOOKMARK favorites with the ☆ on a card; saved businesses appear under \"Favorites\".",
+  "- BOOKMARK favorites with the ☆ on a card; saved businesses appear on the \"Favorites\" page.",
+  "- See RECOMMENDED businesses on the Favorites page after favoriting at least two spots.",
   "- CLAIM a deal inside a business's details to reveal its coupon code (must be signed in).",
-  "- EXPORT or PRINT a report of their favorites from the Favorites panel.",
+  "- Generate a PDF REPORT of their favorites (and recommendations) from the top bar, or export/print it.",
   "",
   "Guidelines:",
   "- Be concise, warm, and practical. Prefer short answers and clear step-by-step instructions.",
   "- You can guide users, but you cannot click buttons for them — tell them where to go.",
-  "- Only help with BizWiz and finding or using local businesses in Lake Forest. If asked",
-  "  something off-topic, briefly redirect to how you can help with BizWiz.",
+  "- Only help with Local Lift and finding or using local businesses in Lake Forest. If asked",
+  "  something off-topic, briefly redirect to how you can help with Local Lift.",
   "- Never invent businesses, deals, or details. If a list of businesses is provided below,",
   "  use it; otherwise suggest the user browse or search.",
   "- Never ask for or store passwords or sensitive personal information.",
@@ -167,7 +168,7 @@ async function handleRequest(request, env) {
   // so the assistant knows the real businesses without duplicating the data here.
   var systemPrompt = SYSTEM_PROMPT;
   if (typeof body.catalog === "string" && body.catalog.trim().length > 0) {
-    systemPrompt += "\n\nBusinesses currently listed in BizWiz:\n" + body.catalog.slice(0, 4000);
+    systemPrompt += "\n\nBusinesses currently listed in Local Lift:\n" + body.catalog.slice(0, 4000);
   }
 
   try {

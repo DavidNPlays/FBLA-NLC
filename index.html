@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <!--
-  index.html — Application shell for BizWiz.
-  Responsibility: define the page structure, load the Firebase SDK (via CDN
-  compat builds, no build step required), and load the application's JavaScript
-  modules in dependency order. This file contains no business logic itself.
+  index.html — Application shell for Local Lift.
+  Responsibility: define the page structure (home, business-detail, and
+  favorites views), load the Firebase SDK (via CDN compat builds, no build step
+  required), and load the application's JavaScript modules in dependency order.
+  This file contains no business logic itself.
 -->
 <html lang="en">
   <head>
@@ -11,37 +12,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="BizWiz — discover, review, bookmark, and get deals from small local businesses in Lake Forest, Illinois."
+      content="Local Lift — discover, review, bookmark, and get deals from small local businesses in Lake Forest, Illinois."
     />
-    <title>BizWiz — Local Business Directory · Lake Forest, IL</title>
+    <title>Local Lift — Local Business Directory · Lake Forest, IL</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏪%3C/text%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://www.gstatic.com" />
     <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
     <!-- ===================== Top navigation (near-black) ===================== -->
     <header class="site-header">
       <div class="site-header__inner">
-        <div class="brand">
+        <a class="brand" href="#/" aria-label="Local Lift home">
           <span class="wordmark brand__name">
-            <span class="wordmark__biz">Biz</span>Wiz
+            <span class="wordmark__accent">Local</span> Lift
           </span>
-        </div>
+        </a>
 
         <div class="header-actions">
           <span class="location-tag eyebrow">Lake Forest, IL</span>
-          <button id="help-button" class="button button--nav button--small" type="button" aria-label="How to use this app">
-            ? Help
-          </button>
-          <button id="favorites-button" class="button button--nav button--small" type="button">
-            <span aria-hidden="true">★</span>
-            <span>Favorites</span>
-            <span id="favorites-count" class="pill-count" hidden>0</span>
-          </button>
+          <nav class="nav-links" aria-label="Primary">
+            <button id="help-button" class="button button--nav button--small" type="button" aria-label="How to use this app">
+              ? Help
+            </button>
+            <button id="favorites-button" class="button button--nav button--small" type="button">
+              <span aria-hidden="true">★</span>
+              <span>Favorites</span>
+              <span id="favorites-count" class="pill-count" hidden>0</span>
+            </button>
+            <button id="pdf-report-button" class="button button--nav button--small" type="button">
+              <span aria-hidden="true">📄</span>
+              <span>PDF Report</span>
+            </button>
+          </nav>
 
           <!-- Auth area: swapped between signed-out and signed-in by auth.js/ui.js -->
           <div id="auth-area" class="auth-area">
@@ -60,65 +73,98 @@
       </div>
     </header>
 
-    <!-- ===================== Hero (gradient banner) ===================== -->
-    <section class="hero">
-      <p class="hero__eyebrow eyebrow">Local Business Directory</p>
-      <h1 class="hero__title">Discover local businesses in Lake Forest</h1>
-      <p class="hero__subtitle">
-        Browse small businesses around Market Square and beyond. Read reviews,
-        save favorites, and claim exclusive deals.
-      </p>
-      <form id="search-form" class="hero__search" role="search">
-        <label class="visually-hidden" for="search-input">Search businesses</label>
-        <input
-          id="search-input"
-          class="hero__search-input"
-          type="search"
-          placeholder="Search by name, category, or keyword…"
-          autocomplete="off"
-        />
-        <button class="button button--primary" type="submit">Search</button>
-      </form>
+    <!-- ===================== Home view ===================== -->
+    <div id="view-home" class="view">
+      <!-- Hero (gradient banner) -->
+      <section class="hero">
+        <p class="hero__eyebrow eyebrow">Local Business Directory</p>
+        <h1 class="hero__title">Discover local businesses in Lake Forest</h1>
+        <p class="hero__subtitle">
+          Browse small businesses around Market Square and beyond. Read reviews,
+          save favorites, and claim exclusive deals.
+        </p>
+        <form id="search-form" class="hero__search" role="search">
+          <label class="visually-hidden" for="search-input">Search businesses</label>
+          <input
+            id="search-input"
+            class="hero__search-input"
+            type="search"
+            placeholder="Search by name, category, or keyword…"
+            autocomplete="off"
+          />
+        </form>
+      </section>
+
+      <!-- Floating filter / sort bar -->
+      <section class="controls" aria-label="Filter and sort businesses">
+        <div
+          id="category-filters"
+          class="filters"
+          role="group"
+          aria-label="Filter by category"
+        >
+          <!-- Category pill buttons injected by ui.js -->
+        </div>
+        <div class="controls__fields">
+          <div class="sort-field">
+            <label class="sort-field__label" for="rating-select">Rating</label>
+            <select id="rating-select" class="sort-select">
+              <option value="0">All ratings</option>
+              <option value="3">3★ &amp; up</option>
+              <option value="4">4★ &amp; up</option>
+              <option value="4.5">4.5★ &amp; up</option>
+            </select>
+          </div>
+          <div class="sort-field">
+            <label class="sort-field__label" for="sort-select">Sort</label>
+            <select id="sort-select" class="sort-select">
+              <option value="featured">Featured</option>
+              <option value="rating">Top rated</option>
+              <option value="name">Name (A–Z)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <main class="page">
+        <p id="results-summary" class="results-summary" aria-live="polite"></p>
+
+        <!-- Business results grid -->
+        <section
+          id="business-grid"
+          class="business-grid"
+          aria-label="Business results"
+        ></section>
+
+        <p id="empty-state" class="empty-state" hidden>
+          No businesses match your search. Try a different keyword or category.
+        </p>
+      </main>
+    </div>
+
+    <!-- ===================== Business detail view ===================== -->
+    <section id="view-business" class="view" hidden aria-label="Business details">
+      <div class="page page--detail">
+        <a class="back-link" href="#/">← All businesses</a>
+        <div id="business-page">
+          <!-- Filled in by ui.js when a business is opened -->
+        </div>
+      </div>
     </section>
 
-    <!-- ===================== Floating filter / sort bar ===================== -->
-    <section class="controls" aria-label="Filter and sort businesses">
-      <div
-        id="category-filters"
-        class="filters"
-        role="group"
-        aria-label="Filter by category"
-      >
-        <!-- Category pill buttons injected by ui.js -->
-      </div>
-      <div class="sort-field">
-        <label class="sort-field__label" for="sort-select">Sort</label>
-        <select id="sort-select" class="sort-select">
-          <option value="featured">Featured</option>
-          <option value="rating">Top rated</option>
-          <option value="name">Name (A–Z)</option>
-        </select>
+    <!-- ===================== Favorites view ===================== -->
+    <section id="view-favorites" class="view" hidden aria-label="Your favorites">
+      <div class="page page--favorites">
+        <a class="back-link" href="#/">← All businesses</a>
+        <div id="favorites-page">
+          <!-- Filled in by ui.js when the favorites view is opened -->
+        </div>
       </div>
     </section>
-
-    <main class="page">
-      <p id="results-summary" class="results-summary" aria-live="polite"></p>
-
-      <!-- ===================== Business results grid ===================== -->
-      <section
-        id="business-grid"
-        class="business-grid"
-        aria-label="Business results"
-      ></section>
-
-      <p id="empty-state" class="empty-state" hidden>
-        No businesses match your search. Try a different keyword or category.
-      </p>
-    </main>
 
     <!-- ===================== Footer (near-black) ===================== -->
     <footer class="site-footer">
-      <p class="wordmark"><span class="wordmark__biz">Biz</span>Wiz</p>
+      <p class="wordmark"><span class="wordmark__accent">Local</span> Lift</p>
       <p class="site-footer__tagline eyebrow">
         Supporting local business in Lake Forest, Illinois
       </p>
@@ -127,58 +173,11 @@
       </p>
     </footer>
 
-    <!-- ===================== Business detail modal ===================== -->
-    <div id="business-modal" class="modal" hidden>
-      <div class="modal__overlay" data-close-modal></div>
-      <div
-        class="modal__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-business-name"
-      >
-        <button class="modal__close" type="button" data-close-modal aria-label="Close">
-          ×
-        </button>
-        <div id="modal-body">
-          <!-- Filled in by ui.js when a business is opened -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== Favorites / export modal ===================== -->
-    <div id="favorites-modal" class="modal" hidden>
-      <div class="modal__overlay" data-close-modal></div>
-      <div
-        class="modal__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="favorites-title"
-      >
-        <button class="modal__close" type="button" data-close-modal aria-label="Close">
-          ×
-        </button>
-        <div class="modal__body">
-          <div class="favorites-header">
-            <h2 id="favorites-title">Your favorites</h2>
-            <div class="favorites-header__actions">
-              <button id="print-favorites" class="button button--secondary button--small" type="button">
-                Print
-              </button>
-              <button id="export-favorites" class="button button--primary button--small" type="button">
-                Export report
-              </button>
-            </div>
-          </div>
-          <div id="favorites-list" class="favorites-list"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- ===================== Help / how-to modal ===================== -->
     <div id="help-modal" class="modal" hidden>
       <div class="modal__overlay" data-close-modal></div>
       <div
-        class="modal__dialog"
+        class="modal__dialog modal__dialog--lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="help-title"
@@ -187,8 +186,8 @@
           ×
         </button>
         <div class="modal__body">
-          <h2 id="help-title">How to use BizWiz</h2>
-          <p style="margin-top: 8px; color: var(--color-body);">
+          <h2 id="help-title">How to use Local Lift</h2>
+          <p class="help-intro">
             Discover and support local businesses in Lake Forest, Illinois.
           </p>
           <ul class="help-list">
@@ -201,12 +200,12 @@
               that type of business.
             </li>
             <li>
-              <strong>Sort</strong> — order results by Featured, Top rated, or
-              Name (A–Z).
+              <strong>Filter &amp; sort by rating</strong> — show only highly-rated
+              spots, or order results by Top rated, Featured, or Name (A–Z).
             </li>
             <li>
               <strong>View details</strong> — open any business to see its hours,
-              contact info, deal, and reviews.
+              contact info, a map, its deal, and reviews.
             </li>
             <li>
               <strong>Sign in with Google</strong> — required before writing
@@ -221,12 +220,16 @@
               Saved businesses appear under Favorites.
             </li>
             <li>
+              <strong>Recommendations</strong> — favorite at least two businesses and
+              Local Lift suggests more you’ll like on your Favorites page.
+            </li>
+            <li>
               <strong>Claim deals</strong> — open a business and claim its deal to
               reveal the coupon code.
             </li>
             <li>
-              <strong>Export &amp; print</strong> — from Favorites, export or print
-              a report of your saved businesses.
+              <strong>PDF Report</strong> — generate a printable report of your saved
+              businesses and recommendations from the top bar.
             </li>
           </ul>
         </div>
@@ -238,7 +241,7 @@
       id="chatbot-launcher"
       class="chatbot-launcher"
       type="button"
-      aria-label="Open the BizWiz assistant"
+      aria-label="Open the Local Lift assistant"
     >
       <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
         <path
@@ -251,7 +254,7 @@
     <div id="chatbot-window" class="chatbot" hidden>
       <div class="chatbot__header">
         <span class="chatbot__title">
-          <span class="wordmark"><span class="wordmark__biz">Biz</span>Wiz</span> Assistant
+          <span class="wordmark"><span class="wordmark__accent">Local</span> Lift</span> Assistant
         </span>
         <button class="chatbot__close" type="button" data-chatbot-close aria-label="Close assistant">
           ×
@@ -270,7 +273,7 @@
       <!-- Rating overlay shown once the user ends the chat -->
       <div id="chatbot-rating" class="chatbot__rating" hidden>
         <div class="chatbot__rating-card" role="dialog" aria-label="Rate the assistant">
-          <p class="chatbot__rating-title">Rate the BizWiz Assistant</p>
+          <p class="chatbot__rating-title">Rate the Local Lift Assistant</p>
           <p class="chatbot__rating-sub">How would you rate this chat, from 1 to 5 stars?</p>
           <div
             id="chatbot-stars"
@@ -290,7 +293,7 @@
           id="chatbot-input"
           class="chatbot__input"
           type="text"
-          placeholder="Ask about BizWiz…"
+          placeholder="Ask about Local Lift…"
           autocomplete="off"
           maxlength="2000"
         />
