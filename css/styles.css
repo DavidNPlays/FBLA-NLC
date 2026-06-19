@@ -1237,68 +1237,33 @@ img {
   margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  gap: 28px;
+  align-items: start;
 }
 
-.rec-card {
+.rec-item {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-lavender);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), box-shadow var(--transition);
+  gap: 10px;
 }
 
-.rec-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-}
-
-.rec-card__media {
-  position: relative;
-  height: 120px;
-  background: var(--hero-gradient);
-  display: grid;
-  place-items: center;
-}
-
-.rec-card__photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.rec-card__emoji {
-  font-size: 2.6rem;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
-}
-
-.rec-card__body {
-  padding: 12px 14px 14px;
-}
-
-.rec-card__name {
-  font-family: var(--font-display);
-  font-weight: 700;
+.rec-item__why {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-lavender);
   color: var(--color-heading);
-}
-
-.rec-card__meta {
-  margin-top: 4px;
-  font-size: 0.82rem;
-  color: var(--color-muted);
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
-.rec-card__why {
-  margin-top: 8px;
-  font-size: 0.8rem;
-  color: var(--color-periwinkle);
-  font-weight: 700;
+/* Recommendation cards reuse the standard business card, so keep them sized
+   to the recommendation grid cell. */
+.rec-item .card {
+  width: 100%;
 }
 
 /* ===================== Chatbot assistant ===================== */

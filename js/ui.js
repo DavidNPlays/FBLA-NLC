@@ -465,8 +465,10 @@
    * @returns {string} The map section HTML.
    */
   function buildMapSection(business) {
-    var place = encodeURIComponent(business.name + " " + (business.address || ""));
-    var embedSrc = "https://www.google.com/maps?q=" + place + "&output=embed";
+    // Use "Name, Address" so Google resolves the exact business, zoom in close
+    // (z=16) on the embed, and open the place itself (selected) from the link.
+    var place = encodeURIComponent(business.name + ", " + (business.address || ""));
+    var embedSrc = "https://maps.google.com/maps?q=" + place + "&z=16&iwloc=&output=embed";
     var linkHref = "https://www.google.com/maps/search/?api=1&query=" + place;
     return (
       '<div class="detail-section">' +
@@ -669,45 +671,24 @@
   }
 
   /**
-   * Build a recommendation card linking to a suggested business.
+   * Build a recommendation: a "Because you like…" caption above the full
+   * business card (name, rating, description, deal, View details).
    * @param {Object} business The recommended business.
+   * @param {number} index The card's position (used to stagger the animation).
    * @param {Object<string, boolean>} favoriteCategories Categories the user favorites.
-   * @returns {string} The recommendation card HTML.
+   * @returns {string} The recommendation HTML.
    */
-  function buildRecommendationCard(business, favoriteCategories) {
-    var average = window.AppData.getAverageRating(business);
-    var ratingText = average > 0 ? average.toFixed(1) + " ★" : "New";
+  function buildRecommendationCard(business, index, favoriteCategories) {
     var why = favoriteCategories[business.category]
       ? "Because you like " + business.category
       : "Highly rated near you";
-    var media = business.image
-      ? '<img class="rec-card__photo" data-photo src="' +
-        escapeHtml(business.image) +
-        '" alt="" loading="lazy" />'
-      : '<span class="rec-card__emoji" aria-hidden="true">' +
-        escapeHtml(business.icon || "🏪") +
-        "</span>";
     return (
-      '<a class="rec-card" href="#/business/' +
-      encodeURIComponent(business.id) +
-      '">' +
-      '<div class="rec-card__media">' +
-      media +
-      "</div>" +
-      '<div class="rec-card__body">' +
-      '<div class="rec-card__name">' +
-      escapeHtml(business.name) +
-      "</div>" +
-      '<div class="rec-card__meta">' +
-      escapeHtml(business.category) +
-      " · " +
-      escapeHtml(ratingText) +
-      "</div>" +
-      '<div class="rec-card__why">' +
+      '<div class="rec-item">' +
+      '<span class="rec-item__why"><span aria-hidden="true">✨</span> ' +
       escapeHtml(why) +
-      "</div>" +
-      "</div>" +
-      "</a>"
+      "</span>" +
+      buildCard(business, index, false) +
+      "</div>"
     );
   }
 
@@ -732,8 +713,8 @@
       favoriteCategories[favorite.category] = true;
     });
     var cards = recommendations
-      .map(function (business) {
-        return buildRecommendationCard(business, favoriteCategories);
+      .map(function (business, index) {
+        return buildRecommendationCard(business, index, favoriteCategories);
       })
       .join("");
     return (
@@ -983,7 +964,11 @@
         return;
       }
       var action = trigger.getAttribute("data-action");
-      if (action === "remove-favorite" && handlers.onRemoveFavorite) {
+      if (action === "open") {
+        window.location.hash = "#/business/" + encodeURIComponent(trigger.getAttribute("data-business-id"));
+      } else if (action === "bookmark" && handlers.onToggleBookmark) {
+        handlers.onToggleBookmark(trigger.getAttribute("data-business-id"));
+      } else if (action === "remove-favorite" && handlers.onRemoveFavorite) {
         handlers.onRemoveFavorite(trigger.getAttribute("data-business-id"));
       } else if (action === "export-report" && handlers.onExportFavorites) {
         handlers.onExportFavorites();
