@@ -18,6 +18,7 @@ node_modules/
 .playwright-mcp/
 .firebase/
 
-# Local screenshots
+# Local screenshots (but keep real app assets)
 *.jpeg
 *.png
+!assets/**
