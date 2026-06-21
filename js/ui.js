@@ -398,6 +398,7 @@
       count > 0 ? average.toFixed(1) + " out of 5 (" + count + ")" : "No ratings yet";
     var scrim =
       '<div class="detail-hero__scrim">' +
+      '<div class="detail-hero__inner">' +
       '<span class="detail-hero__badge">' +
       escapeHtml(business.category) +
       "</span>" +
@@ -409,6 +410,7 @@
       "<span>" +
       escapeHtml(ratingText) +
       "</span></div>" +
+      "</div>" +
       "</div>";
 
     if (business.image) {
@@ -471,7 +473,7 @@
     var embedSrc = "https://maps.google.com/maps?q=" + place + "&z=16&iwloc=&output=embed";
     var linkHref = "https://www.google.com/maps/search/?api=1&query=" + place;
     return (
-      '<div class="detail-section">' +
+      '<div class="info-card">' +
       '<div class="section-title">Location</div>' +
       '<div class="detail-map">' +
       '<iframe class="detail-map__frame" title="Map of ' +
@@ -503,8 +505,7 @@
     var count = window.AppData.getRatingCount(business);
 
     var dealHtml = business.deal
-      ? '<div class="detail-section">' +
-        '<div class="detail-deal">' +
+      ? '<div class="detail-deal">' +
         '<div class="detail-deal__title">🎟️ ' +
         escapeHtml(business.deal.title) +
         "</div>" +
@@ -520,16 +521,19 @@
           ? ""
           : '<button class="button button--primary button--small" type="button" ' +
             'id="claim-deal" style="margin-top:12px;">Claim deal</button>') +
-        "</div>" +
         "</div>"
       : "";
 
     elements.businessPage.innerHTML =
       buildDetailHero(business, average, count) +
-      '<div class="detail-actions">' +
+      '<div class="detail-body">' +
+      '<div class="detail-body__top">' +
+      '<a class="back-link" href="#/">← All businesses</a>' +
       buildDetailBookmark(business, !!state.isBookmarked) +
       "</div>" +
-      '<div class="detail-section">' +
+      '<div class="detail-grid">' +
+      // ----- Left column: About, deal, integrated map -----
+      '<div class="detail-main">' +
       '<div class="info-card">' +
       '<div class="section-title">About</div>' +
       '<p class="info-card__text">' +
@@ -547,15 +551,18 @@
       "</span></div>" +
       "</div>" +
       "</div>" +
-      "</div>" +
-      buildMapSection(business) +
       dealHtml +
-      '<div class="detail-section">' +
-      '<div class="section-title">Reviews</div>' +
+      buildMapSection(business) +
+      "</div>" +
+      // ----- Right column: reviews list + review form -----
+      '<aside class="detail-side">' +
+      '<div class="section-title section-title--reviews">Reviews</div>' +
       '<div id="reviews-list">' +
       buildReviewsHtml(state.reviews) +
       "</div>" +
       buildReviewForm(state.isSignedIn) +
+      "</aside>" +
+      "</div>" +
       "</div>";
 
     bindImageFallbacks(elements.businessPage);
