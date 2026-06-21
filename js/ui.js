@@ -387,6 +387,25 @@
   }
 
   /**
+   * Build a high-resolution src + responsive srcset for the full-bleed hero so
+   * the photo stays sharp when stretched across the page (incl. retina screens).
+   * @param {string} url The catalog image URL (Unsplash, e.g. ...?w=800&q=70...).
+   * @returns {{src: string, srcset: string}} The hero image source attributes.
+   */
+  function buildHeroImageSources(url) {
+    function atWidth(width) {
+      return url
+        .replace(/([?&])w=\d+/, "$1w=" + width)
+        .replace(/([?&])q=\d+/, "$1q=80");
+    }
+    return {
+      src: atWidth(1920),
+      srcset:
+        atWidth(1280) + " 1280w, " + atWidth(1920) + " 1920w, " + atWidth(2560) + " 2560w",
+    };
+  }
+
+  /**
    * Build the photo hero (or gradient+emoji fallback) for the detail page.
    * @param {Object} business The business being shown.
    * @param {number} average The average rating.
@@ -414,12 +433,15 @@
       "</div>";
 
     if (business.image) {
+      var heroImage = buildHeroImageSources(business.image);
       return (
         '<div class="detail-hero">' +
         '<img class="detail-hero__photo" data-photo data-fallback-class="detail-hero--fallback" ' +
         'src="' +
-        escapeHtml(business.image) +
-        '" alt="' +
+        escapeHtml(heroImage.src) +
+        '" srcset="' +
+        escapeHtml(heroImage.srcset) +
+        '" sizes="100vw" alt="' +
         escapeHtml(business.name) +
         '" />' +
         '<span class="detail-hero__emoji" data-emoji aria-hidden="true" hidden>' +
