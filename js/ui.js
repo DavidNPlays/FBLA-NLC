@@ -127,7 +127,7 @@
 
   /**
    * Switch which top-level view is visible and scroll to the top.
-   * @param {string} name One of "home", "business", or "favorites".
+   * @param {string} name One of "home", "business", "favorites", or "report".
    * @returns {void}
    */
   function showView(name) {
@@ -135,6 +135,7 @@
       home: elements.viewHome,
       business: elements.viewBusiness,
       favorites: elements.viewFavorites,
+      report: elements.viewReport,
     };
     Object.keys(views).forEach(function (key) {
       if (views[key]) {
@@ -893,6 +894,8 @@
       viewHome: document.getElementById("view-home"),
       viewBusiness: document.getElementById("view-business"),
       viewFavorites: document.getElementById("view-favorites"),
+      viewReport: document.getElementById("view-report"),
+      reportPage: document.getElementById("report-page"),
       searchInput: document.getElementById("search-input"),
       searchForm: document.getElementById("search-form"),
       categoryFilters: document.getElementById("category-filters"),
@@ -1008,6 +1011,290 @@
     });
   }
 
+  /* ===================== My Report view ===================== */
+
+  // One line color per plotted business on the rating-trends chart.
+  var REPORT_LINE_COLORS = [
+    "#1ec8e0", "#ec4899", "#7c5cff", "#f5a623",
+    "#34d399", "#ef4444", "#3a5d80", "#b07cff",
+  ];
+  var MILLISECONDS_PER_DAY = 86400000;
+
+  // Live state for the interactive rating-trends tool on the report page.
+  var reportTrends = {};
+  var reportSelectedIds = [];
+
+  /**
+   * Stable line color for the nth plotted business.
+   * @param {number} index Position in the selection.
+   * @returns {string} A hex color.
+   */
+  function reportColorForIndex(index) {
+    return REPORT_LINE_COLORS[index % REPORT_LINE_COLORS.length];
+  }
+
+  /**
+   * Whether a business has at least one rating-trend point to plot.
+   * @param {string} businessId The business id.
+   * @returns {boolean} True when the business has trend points.
+   */
+  function reportHasTrendPoints(businessId) {
+    return !!(
+      reportTrends[businessId] &&
+      reportTrends[businessId].points &&
+      reportTrends[businessId].points.length
+    );
+  }
+
+  /**
+   * Format a timestamp as a short "M/D" axis label.
+   * @param {number} timestamp Milliseconds since the epoch.
+   * @returns {string} The formatted date.
+   */
+  function reportFormatDate(timestamp) {
+    var date = new Date(timestamp);
+    return date.getMonth() + 1 + "/" + date.getDate();
+  }
+
+  /**
+   * Build the date-based rating-trend line chart (inline SVG) for the currently
+   * selected businesses, where x is the review date and y is the running average.
+   * @returns {string} The chart SVG, or an empty-state message.
+   */
+  function buildReportTrendChart() {
+    var plottedIds = reportSelectedIds.filter(reportHasTrendPoints);
+    if (plottedIds.length === 0) {
+      return '<p class="cmp-empty">Add a business above to plot its rating trend.</p>';
+    }
+    var width = 696;
+    var height = 320;
+    var leftPad = 46;
+    var rightPad = 16;
+    var topPad = 16;
+    var bottomPad = 46;
+    var plotWidth = width - leftPad - rightPad;
+    var plotHeight = height - topPad - bottomPad;
+
+    var minTime = Infinity;
+    var maxTime = -Infinity;
+    plottedIds.forEach(function (businessId) {
+      reportTrends[businessId].points.forEach(function (point) {
+        if (point.time < minTime) {
+          minTime = point.time;
+        }
+        if (point.time > maxTime) {
+          maxTime = point.time;
+        }
+      });
+    });
+    if (minTime === maxTime) {
+      minTime -= MILLISECONDS_PER_DAY;
+      maxTime += MILLISECONDS_PER_DAY;
+    }
+
+    /**
+     * Map a timestamp to an x pixel within the plot area.
+     * @param {number} time Milliseconds since the epoch.
+     * @returns {number} The x coordinate.
+     */
+    function xForTime(time) {
+      return leftPad + plotWidth * ((time - minTime) / (maxTime - minTime));
+    }
+    /**
+     * Map a 0-5 rating to a y pixel within the plot area.
+     * @param {number} rating The average rating.
+     * @returns {number} The y coordinate.
+     */
+    function yForRating(rating) {
+      return topPad + plotHeight * (1 - rating / 5);
+    }
+
+    var svg =
+      '<svg viewBox="0 0 ' + width + " " + height +
+      '" width="100%" preserveAspectRatio="xMidYMid meet">';
+    var rating;
+    for (rating = 0; rating <= 5; rating++) {
+      var gridY = yForRating(rating);
+      svg +=
+        '<line x1="' + leftPad + '" y1="' + gridY + '" x2="' + (width - rightPad) +
+        '" y2="' + gridY + '" stroke="#e3ebf3"/>';
+      svg +=
+        '<text x="' + (leftPad - 8) + '" y="' + (gridY + 4) +
+        '" text-anchor="end" font-size="11" fill="#7c8ea0">' + rating + "</text>";
+    }
+    var tickCount = 4;
+    var tick;
+    for (tick = 0; tick <= tickCount; tick++) {
+      var tickTime = minTime + ((maxTime - minTime) * tick) / tickCount;
+      var tickX = xForTime(tickTime);
+      svg +=
+        '<line x1="' + tickX + '" y1="' + topPad + '" x2="' + tickX + '" y2="' +
+        (topPad + plotHeight) + '" stroke="#f0f4f9"/>';
+      svg +=
+        '<text x="' + tickX + '" y="' + (height - bottomPad + 18) +
+        '" text-anchor="middle" font-size="11" fill="#7c8ea0">' +
+        reportFormatDate(tickTime) + "</text>";
+    }
+    svg +=
+      '<text x="' + (leftPad + plotWidth / 2) + '" y="' + (height - 4) +
+      '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Review Date</text>';
+    svg +=
+      '<text transform="rotate(-90 14 ' + (topPad + plotHeight / 2) + ')" x="14" y="' +
+      (topPad + plotHeight / 2) +
+      '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Average Rating</text>';
+
+    plottedIds.forEach(function (businessId, index) {
+      var trend = reportTrends[businessId];
+      var color = reportColorForIndex(index);
+      var linePoints = trend.points
+        .map(function (point) {
+          return xForTime(point.time) + "," + yForRating(point.average);
+        })
+        .join(" ");
+      svg +=
+        '<polyline fill="none" stroke="' + color + '" stroke-width="3" points="' +
+        linePoints + '"/>';
+      trend.points.forEach(function (point) {
+        svg +=
+          '<circle cx="' + xForTime(point.time) + '" cy="' + yForRating(point.average) +
+          '" r="4" fill="' + color + '"/>';
+      });
+    });
+    svg += "</svg>";
+    return svg;
+  }
+
+  /**
+   * Build the legend (one swatch + name per selected business) for the chart.
+   * @returns {string} The legend HTML.
+   */
+  function buildReportTrendLegend() {
+    return reportSelectedIds
+      .filter(reportHasTrendPoints)
+      .map(function (businessId, index) {
+        return (
+          '<span class="legend__item"><span class="legend__swatch" style="background:' +
+          reportColorForIndex(index) + '"></span>' +
+          escapeHtml(reportTrends[businessId].name) + "</span>"
+        );
+      })
+      .join("");
+  }
+
+  /**
+   * Render the removable chips that show which businesses are plotted.
+   * @returns {void}
+   */
+  function renderReportChips() {
+    var chipBox = document.getElementById("cmp-chips");
+    if (!chipBox) {
+      return;
+    }
+    chipBox.innerHTML = "";
+    reportSelectedIds.forEach(function (businessId, index) {
+      var trend = reportTrends[businessId];
+      if (!trend) {
+        return;
+      }
+      var chip = document.createElement("span");
+      chip.className = "cmp-chip";
+      chip.style.borderColor = reportColorForIndex(index);
+      chip.style.color = reportColorForIndex(index);
+
+      var nameLabel = document.createElement("span");
+      nameLabel.textContent = trend.name;
+      nameLabel.style.color = "#2c3e50";
+
+      var removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "×";
+      removeButton.setAttribute("aria-label", "Remove " + trend.name);
+      removeButton.addEventListener("click", function () {
+        reportSelectedIds.splice(reportSelectedIds.indexOf(businessId), 1);
+        renderReportTrends();
+      });
+
+      chip.appendChild(nameLabel);
+      chip.appendChild(removeButton);
+      chipBox.appendChild(chip);
+    });
+  }
+
+  /**
+   * Redraw the chips, legend, and rating-trend chart for the current selection.
+   * @returns {void}
+   */
+  function renderReportTrends() {
+    renderReportChips();
+    var legend = document.getElementById("cmp-legend");
+    var chart = document.getElementById("cmp-chart");
+    if (legend) {
+      legend.innerHTML = buildReportTrendLegend();
+    }
+    if (chart) {
+      chart.innerHTML = buildReportTrendChart();
+    }
+  }
+
+  /**
+   * Render the My Report view's content and wire its "Download PDF Report"
+   * button to the browser's print/save-as-PDF dialog.
+   * @param {string} innerHtml The report HTML built by app.js.
+   * @returns {void}
+   */
+  function renderReportPage(innerHtml) {
+    elements.reportPage.innerHTML = innerHtml;
+    bindImageFallbacks(elements.reportPage);
+
+    var downloadButton = document.getElementById("report-download");
+    if (downloadButton) {
+      downloadButton.addEventListener("click", function () {
+        window.print();
+      });
+    }
+    showView("report");
+  }
+
+  /**
+   * Populate and wire the interactive rating-trends tool once review data is
+   * available: fill the dropdown, plot the user's favorites, and let them add or
+   * remove businesses from the chart.
+   * @param {{trends: Object, options: Array<Object>, selected: Array<string>}} chartData
+   *   Per-business trends, the dropdown options, and the initially plotted ids.
+   * @returns {void}
+   */
+  function initReportTrends(chartData) {
+    reportTrends = chartData.trends || {};
+    reportSelectedIds = (chartData.selected || []).filter(reportHasTrendPoints);
+
+    var select = document.getElementById("cmp-select");
+    if (select) {
+      select.innerHTML = "";
+      (chartData.options || []).forEach(function (option) {
+        var optionElement = document.createElement("option");
+        optionElement.value = option.id;
+        optionElement.textContent = option.name;
+        select.appendChild(optionElement);
+      });
+    }
+
+    var addButton = document.getElementById("cmp-add");
+    if (addButton) {
+      addButton.addEventListener("click", function () {
+        var businessId = select ? select.value : "";
+        if (
+          businessId &&
+          reportSelectedIds.indexOf(businessId) === -1 &&
+          reportHasTrendPoints(businessId)
+        ) {
+          reportSelectedIds.push(businessId);
+          renderReportTrends();
+        }
+      });
+    }
+    renderReportTrends();
+  }
+
   /**
    * Public UI module surface.
    * @namespace AppUI
@@ -1018,10 +1305,13 @@
     renderBusinesses: renderBusinesses,
     setBookmarkState: setBookmarkState,
     showView: showView,
+    escapeHtml: escapeHtml,
     renderBusinessPage: renderBusinessPage,
     renderBusinessReviews: renderBusinessReviews,
     revealDealCode: revealDealCode,
     renderFavoritesPage: renderFavoritesPage,
+    renderReportPage: renderReportPage,
+    initReportTrends: initReportTrends,
     updateFavoritesCount: updateFavoritesCount,
     updateAuthState: updateAuthState,
     showToast: showToast,

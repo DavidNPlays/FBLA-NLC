@@ -92,18 +92,13 @@
   /* ===================== Report (interactive page + PDF export) ===================== */
 
   /**
-   * Escape text for safe inclusion in generated report/PDF HTML, including
-   * attribute values.
+   * Escape text for safe inclusion in generated report HTML. Delegates to the
+   * shared UI escaper so the escaping logic lives in one place.
    * @param {string} value Raw text.
    * @returns {string} HTML-escaped text.
    */
   function escapeForReport(value) {
-    var text = value == null ? "" : String(value);
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+    return window.AppUI.escapeHtml(value);
   }
 
   /**
@@ -347,422 +342,83 @@
   }
 
   /**
-   * Build the shared stylesheet used by both the interactive report page and the
-   * exported PDF, so the two always look identical.
-   * @param {string} backgroundUrl Absolute URL of the watercolor letterhead image.
-   * @returns {string} A complete <style> element.
-   */
-  function reportStyles(backgroundUrl) {
-    return (
-      "<style>" +
-      [
-        "*{box-sizing:border-box;}",
-        "@page{size:letter;margin:0;}",
-        "html,body{margin:0;padding:0;}",
-        "body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;",
-        "color:#2c3e50;background:#dfeaf4;-webkit-print-color-adjust:exact;print-color-adjust:exact;",
-        "display:flex;justify-content:center;padding:28px 16px;}",
-        ".sheet{position:relative;width:816px;max-width:100%;background:#eaf2fa url('" + backgroundUrl + "') center / cover no-repeat;",
-        "box-shadow:0 24px 60px rgba(40,70,110,0.22);overflow:hidden;}",
-        ".sheet__inner{padding:52px 56px 40px;}",
-        ".masthead{display:flex;align-items:center;gap:14px;margin:0 0 22px;}",
-        ".brandmark{display:inline-flex;align-items:center;gap:13px;background:rgba(255,255,255,0.62);",
-        "border:1px solid rgba(255,255,255,0.8);padding:10px 18px 10px 14px;border-radius:18px;",
-        "box-shadow:0 8px 22px rgba(40,70,110,0.10);}",
-        ".brandmark__icon{width:42px;height:40px;flex:none;}",
-        ".brandmark__word{font-size:26px;font-weight:800;letter-spacing:-0.01em;line-height:1;color:#2f4d6e;}",
-        ".brandmark__word i{font-style:italic;color:#79a6cf;}",
-        ".report-title{font-size:46px;font-weight:800;letter-spacing:-0.015em;color:#26384a;margin:6px 0 24px;}",
-        ".section{margin:0 0 30px;}",
-        ".section-head{display:flex;align-items:center;gap:12px;margin:0 0 16px;}",
-        ".section-head__icon{display:inline-grid;place-items:center;width:38px;height:38px;flex:none;",
-        "font-size:19px;border-radius:11px;background:linear-gradient(140deg,#e3f0fb,#cfe2f4);",
-        "box-shadow:0 4px 12px rgba(40,70,110,0.12);}",
-        ".section-head__title{font-size:21px;font-weight:800;color:#2f4d6e;margin:0;letter-spacing:-0.01em;}",
-        ".section-head__rule{flex:1;height:2px;border-radius:2px;",
-        "background:linear-gradient(90deg,rgba(122,166,207,0.55),rgba(122,166,207,0));}",
-        ".pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}",
-        ".prec{display:flex;flex-direction:column;gap:8px;}",
-        ".prec__why{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;",
-        "font-size:11px;font-weight:700;color:#5a76b8;background:#eef2fd;border-radius:20px;padding:5px 12px;}",
-        ".pcard{display:flex;flex-direction:column;background:#fff;border-radius:14px;overflow:hidden;",
-        "box-shadow:0 10px 26px rgba(40,70,110,0.13);border:1px solid #eaf1f8;}",
-        ".pcard__media{position:relative;height:138px;background:linear-gradient(135deg,#81a2ff,#e9edf9);}",
-        ".pcard__media img{width:100%;height:100%;object-fit:cover;display:block;}",
-        ".pcard__media--fallback{display:grid;place-items:center;}",
-        ".pcard__emoji{font-size:3rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.15));}",
-        ".pcard__body{display:flex;flex-direction:column;flex:1;padding:13px 16px 16px;}",
-        ".pcard__name{font-size:17px;font-weight:800;color:#2c3e50;margin:0;}",
-        ".pcard__meta{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}",
-        ".pbadge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;",
-        "background:#d1d9f7;color:#46506e;font-size:11px;font-weight:700;}",
-        ".pprice{color:#9aa6b4;font-size:12.5px;font-weight:700;}",
-        ".pcard__rating{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:12.5px;color:#5a6b7d;font-weight:700;}",
-        ".pstars{position:relative;display:inline-block;font-size:15px;line-height:1;letter-spacing:1px;font-family:sans-serif;}",
-        ".pstars__track{color:#dcdce4;}",
-        ".pstars__fill{position:absolute;top:0;left:0;overflow:hidden;white-space:nowrap;color:#ffb400;}",
-        ".pcard__desc{margin:11px 0 0;font-size:13px;line-height:1.5;color:#5f6c79;",
-        "display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}",
-        ".pcard__deal{margin-top:auto;padding-top:13px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5d7187;}",
-        ".pcard__deal .ticket{font-size:14px;}",
-        ".pcard__code{font-family:'SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;font-weight:800;",
-        "letter-spacing:0.04em;color:#2f6f4f;background:#e4f5ec;border:1px dashed #9bd3b4;border-radius:7px;padding:3px 9px;font-size:12px;}",
-        ".report-empty{font-size:13.5px;color:#5d7187;background:rgba(255,255,255,0.86);border-radius:12px;padding:14px 16px;}",
-        ".panel{background:#fff;border-radius:14px;padding:18px 20px;border:1px solid #eaf1f8;box-shadow:0 10px 26px rgba(40,70,110,0.13);}",
-        ".bar-row{display:grid;grid-template-columns:160px 1fr 46px;align-items:center;gap:14px;margin:11px 0;}",
-        ".bar-label{font-size:12.5px;font-weight:700;color:#2c3e50;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
-        ".bar-track{height:20px;background:#e7eef6;border-radius:10px;overflow:hidden;}",
-        ".bar-fill{height:100%;min-width:3px;border-radius:10px;background:linear-gradient(90deg,#9cc1e2,#3a5d80);}",
-        ".bar-val{font-size:12.5px;font-weight:800;color:#33597d;text-align:right;}",
-        ".panel__cap{font-size:11px;color:#7c8ea0;margin-top:12px;}",
-        ".legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:0 0 6px;}",
-        ".legend__item{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#2c3e50;}",
-        ".legend__swatch{width:16px;height:10px;border-radius:3px;display:inline-block;}",
-        ".cmp-empty{font-size:13px;color:#7c8ea0;text-align:center;padding:28px 0;}",
-        ".reminder{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,0.88);",
-        "border:1px solid #d8e6f4;border-left:4px solid #4a86c5;border-radius:14px;padding:15px 18px;margin:0 0 26px;",
-        "box-shadow:0 8px 22px rgba(40,70,110,0.10);font-size:13.5px;line-height:1.55;color:#41566a;}",
-        ".reminder__icon{font-size:18px;line-height:1.4;flex:none;}",
-        ".reminder strong{color:#2f4d6e;}",
-        ".reminder b{color:#33597d;}",
-        ".cmp-intro{font-size:13.5px;color:#4f6072;margin:0 0 14px;}",
-        ".cmp-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;}",
-        ".cmp-controls label{font-size:13px;font-weight:700;color:#33597d;}",
-        ".cmp-controls select{font:inherit;font-size:13px;padding:9px 12px;border:1.5px solid #bcd0e6;",
-        "border-radius:10px;background:#fff;color:#2c3e50;min-width:220px;}",
-        "#cmp-add{font:inherit;font-size:13px;font-weight:700;color:#fff;cursor:pointer;background:#4a86c5;",
-        "border:none;border-radius:10px;padding:10px 16px;}",
-        "#cmp-add:hover{background:#3a73b0;}",
-        ".cmp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}",
-        ".cmp-chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;background:#fff;",
-        "border:2px solid #ccc;border-radius:22px;padding:6px 12px;}",
-        ".cmp-chip button{font:inherit;font-size:15px;line-height:1;color:inherit;cursor:pointer;background:none;border:none;padding:0;}",
-        "footer{margin-top:28px;padding-top:16px;border-top:1px solid #e2e9f1;color:#7c8ea0;font-size:11.5px;",
-        "display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}",
-        ".fab{position:fixed;top:22px;right:26px;font:inherit;font-size:14px;font-weight:800;color:#fff;cursor:pointer;",
-        "background:linear-gradient(90deg,#4a86c5,#33597d);border:none;border-radius:26px;padding:13px 22px;",
-        "box-shadow:0 12px 26px rgba(40,70,110,0.32);z-index:50;}",
-        ".fab:hover{filter:brightness(1.05);}",
-        "@media print{.no-print{display:none !important;}body{padding:0;background:#fff;}",
-        ".sheet{box-shadow:none;width:auto;max-width:none;}}",
-      ].join("") +
-      "</style>"
-    );
-  }
-
-  /**
-   * Build the self-contained script that runs inside the report page: it powers
-   * the Compare Businesses tool (dropdown, chips, and a date-based line chart)
-   * and the "Download PDF Report" button, which assembles the print-ready PDF
-   * page in a new tab. Reads its data from window.__REPORT__.
-   * @returns {string} The report page's inline script body.
-   */
-  function buildReportScript() {
-    // The body below is shipped as source text into the report window, where it
-    // powers the Compare Businesses tool and the Download PDF Report button.
-    return `
-(function () {
-  var reportData = window.__REPORT__ || {};
-  var trends = reportData.trends || {};
-  var businessOptions = reportData.options || [];
-  var pdfBundle = reportData.pdf || {};
-  var LINE_COLORS = ['#1ec8e0', '#ec4899', '#7c5cff', '#f5a623', '#34d399', '#ef4444', '#3a5d80', '#b07cff'];
-  var MILLISECONDS_PER_DAY = 86400000;
-
-  /** Escape text for safe inclusion in generated HTML (text or attribute). */
-  function escapeText(value) {
-    return String(value == null ? '' : value)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  /** Whether a business has at least one rating-trend point to plot. */
-  function hasTrendPoints(businessId) {
-    return trends[businessId] && trends[businessId].points && trends[businessId].points.length;
-  }
-
-  /** Stable line color for the nth plotted business. */
-  function colorForIndex(index) {
-    return LINE_COLORS[index % LINE_COLORS.length];
-  }
-
-  /** Format a timestamp as a short "M/D" axis label. */
-  function formatDate(timestamp) {
-    var date = new Date(timestamp);
-    return (date.getMonth() + 1) + '/' + date.getDate();
-  }
-
-  // Businesses currently plotted on the comparison chart (favorites to start).
-  var activeBusinessIds = (reportData.selected || []).filter(hasTrendPoints);
-
-  /**
-   * Build the date-based rating-trend line chart (inline SVG) and its legend
-   * for the currently active businesses.
-   * @returns {{svg: string, legend: string}} The chart SVG and legend markup.
-   */
-  function buildLineChart() {
-    var plottedIds = activeBusinessIds.filter(hasTrendPoints);
-    var width = 696, height = 320;
-    var leftPad = 46, rightPad = 16, topPad = 16, bottomPad = 46;
-    var plotWidth = width - leftPad - rightPad;
-    var plotHeight = height - topPad - bottomPad;
-
-    var minTime = Infinity, maxTime = -Infinity;
-    plottedIds.forEach(function (businessId) {
-      trends[businessId].points.forEach(function (point) {
-        if (point.time < minTime) { minTime = point.time; }
-        if (point.time > maxTime) { maxTime = point.time; }
-      });
-    });
-    if (!isFinite(minTime)) { minTime = Date.now() - MILLISECONDS_PER_DAY; maxTime = Date.now(); }
-    if (minTime === maxTime) { minTime -= MILLISECONDS_PER_DAY; maxTime += MILLISECONDS_PER_DAY; }
-
-    /** Map a timestamp to an x pixel within the plot area. */
-    function xForTime(time) {
-      return leftPad + plotWidth * ((time - minTime) / (maxTime - minTime));
-    }
-    /** Map a 0-5 rating to a y pixel within the plot area. */
-    function yForRating(rating) {
-      return topPad + plotHeight * (1 - rating / 5);
-    }
-
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" width="100%" preserveAspectRatio="xMidYMid meet">';
-    for (var rating = 0; rating <= 5; rating++) {
-      var gridY = yForRating(rating);
-      svg += '<line x1="' + leftPad + '" y1="' + gridY + '" x2="' + (width - rightPad) + '" y2="' + gridY + '" stroke="#e3ebf3"/>';
-      svg += '<text x="' + (leftPad - 8) + '" y="' + (gridY + 4) + '" text-anchor="end" font-size="11" fill="#7c8ea0">' + rating + '</text>';
-    }
-    var tickCount = 4;
-    for (var tick = 0; tick <= tickCount; tick++) {
-      var tickTime = minTime + (maxTime - minTime) * tick / tickCount;
-      var tickX = xForTime(tickTime);
-      svg += '<line x1="' + tickX + '" y1="' + topPad + '" x2="' + tickX + '" y2="' + (topPad + plotHeight) + '" stroke="#f0f4f9"/>';
-      svg += '<text x="' + tickX + '" y="' + (height - bottomPad + 18) + '" text-anchor="middle" font-size="11" fill="#7c8ea0">' + formatDate(tickTime) + '</text>';
-    }
-    svg += '<text x="' + (leftPad + plotWidth / 2) + '" y="' + (height - 4) + '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Review Date</text>';
-    svg += '<text transform="rotate(-90 14 ' + (topPad + plotHeight / 2) + ')" x="14" y="' + (topPad + plotHeight / 2) + '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Average Rating</text>';
-
-    plottedIds.forEach(function (businessId, index) {
-      var trend = trends[businessId];
-      var color = colorForIndex(index);
-      var linePoints = trend.points.map(function (point) {
-        return xForTime(point.time) + ',' + yForRating(point.average);
-      }).join(' ');
-      svg += '<polyline fill="none" stroke="' + color + '" stroke-width="3" points="' + linePoints + '"/>';
-      trend.points.forEach(function (point) {
-        svg += '<circle cx="' + xForTime(point.time) + '" cy="' + yForRating(point.average) + '" r="4" fill="' + color + '"/>';
-      });
-    });
-    svg += '</svg>';
-
-    var legend = plottedIds.map(function (businessId, index) {
-      return '<span class="legend__item"><span class="legend__swatch" style="background:' +
-        colorForIndex(index) + '"></span>' + escapeText(trends[businessId].name) + '</span>';
-    }).join('');
-
-    return {
-      svg: plottedIds.length ? svg : '<p class="cmp-empty">Add a business above to plot its rating trend.</p>',
-      legend: plottedIds.length ? legend : ''
-    };
-  }
-
-  // Populate the "Add business" dropdown with every business.
-  var businessSelect = document.getElementById('cmp-select');
-  businessOptions.forEach(function (option) {
-    var optionElement = document.createElement('option');
-    optionElement.value = option.id;
-    optionElement.textContent = option.name;
-    businessSelect.appendChild(optionElement);
-  });
-  document.getElementById('cmp-add').addEventListener('click', function () {
-    var businessId = businessSelect.value;
-    if (businessId && activeBusinessIds.indexOf(businessId) === -1 && hasTrendPoints(businessId)) {
-      activeBusinessIds.push(businessId);
-      renderComparison();
-    }
-  });
-
-  /** Render a removable chip for each plotted business. */
-  function renderChips() {
-    var chipBox = document.getElementById('cmp-chips');
-    chipBox.innerHTML = '';
-    activeBusinessIds.forEach(function (businessId, index) {
-      var trend = trends[businessId];
-      if (!trend) { return; }
-      var chip = document.createElement('span');
-      chip.className = 'cmp-chip';
-      chip.style.borderColor = colorForIndex(index);
-      chip.style.color = colorForIndex(index);
-      var nameLabel = document.createElement('span');
-      nameLabel.textContent = trend.name;
-      nameLabel.style.color = '#2c3e50';
-      var removeButton = document.createElement('button');
-      removeButton.type = 'button';
-      removeButton.textContent = '×';
-      removeButton.setAttribute('aria-label', 'Remove ' + trend.name);
-      removeButton.addEventListener('click', function () {
-        activeBusinessIds.splice(activeBusinessIds.indexOf(businessId), 1);
-        renderComparison();
-      });
-      chip.appendChild(nameLabel);
-      chip.appendChild(removeButton);
-      chipBox.appendChild(chip);
-    });
-  }
-
-  /** Redraw the chips, legend, and chart for the current selection. */
-  function renderComparison() {
-    renderChips();
-    var chart = buildLineChart();
-    document.getElementById('cmp-legend').innerHTML = chart.legend;
-    document.getElementById('cmp-chart').innerHTML = chart.svg;
-  }
-  renderComparison();
-
-  /** Assemble the print-ready PDF page and open it in a new browser tab. */
-  function downloadPdf() {
-    var chart = buildLineChart();
-    var trendsSection =
-      '<section class="section"><div class="section-head">' +
-      '<span class="section-head__icon" aria-hidden="true">📈</span>' +
-      '<h2 class="section-head__title">Rating Trends Over Time</h2>' +
-      '<span class="section-head__rule"></span></div>' +
-      '<div class="panel"><div class="legend">' + chart.legend + '</div>' + chart.svg + '</div></section>';
-    var pdfDocument =
-      '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>My Report — Local Lift</title>' + pdfBundle.styles + '</head><body>' +
-      '<button class="fab no-print" type="button" onclick="window.print()">🖨️ Print / Save as PDF</button>' +
-      '<div class="sheet"><div class="sheet__inner">' + pdfBundle.masthead +
-      '<h1 class="report-title">My Report</h1>' +
-      pdfBundle.favoritesSection + pdfBundle.recommendSection + pdfBundle.compareBarSection +
-      trendsSection + pdfBundle.footer + '</div></div></body></html>';
-    var pdfWindow = window.open('', '_blank');
-    if (!pdfWindow) {
-      alert('Please allow pop-ups to download your PDF report.');
-      return;
-    }
-    pdfWindow.document.open();
-    pdfWindow.document.write(pdfDocument);
-    pdfWindow.document.close();
-    pdfWindow.focus();
-  }
-  document.getElementById('download-pdf').addEventListener('click', downloadPdf);
-})();
-`;
-  }
-
-  /**
-   * Build the interactive "My Report" page: the masthead, a reminder of what is
-   * auto-included in the PDF, and the Compare Businesses tool. The page also
-   * carries the data and pre-rendered sections the "Download PDF Report" button
-   * needs to assemble the print-ready PDF.
+   * Build the inner HTML of the My Report view: the masthead, a "Download PDF
+   * Report" button, a reminder of what the printout contains, the favorited and
+   * recommended businesses, the Compare-Your-Favorites bar chart, and the
+   * interactive rating-trends section (its controls are screen-only; the chart
+   * itself prints). The chart is populated by ui.js once reviews load.
    * @param {Array<Object>} favorites The user's favorite businesses.
    * @param {Array<Object>} recommendations The recommended businesses.
-   * @param {Object} trends Per-business rating trends keyed by business id.
-   * @returns {string} A complete HTML document as a string.
+   * @returns {string} The report view's inner HTML.
    */
-  function buildReportPageHtml(favorites, recommendations, trends) {
-    var backgroundUrl = window.location.origin + "/assets/report-bg.png";
-    var styles = reportStyles(backgroundUrl);
-    var masthead = buildReportMasthead();
-    var footer =
-      "<footer><span>Generated by <strong>Local Lift</strong></span>" +
-      "<span>FBLA Coding &amp; Programming · 2025–2026</span></footer>";
-
-    // Pre-render the PDF-only sections now and bundle them with the page so the
-    // download button can build the PDF instantly, without re-reading data.
-    var pdfBundle = {
-      styles: styles,
-      masthead: masthead,
-      favoritesSection: buildReportFavoritesSection(favorites),
-      recommendSection: buildReportRecommendationsSection(favorites, recommendations),
-      compareBarSection: buildReportCompareBarSection(favorites),
-      footer: footer,
-    };
-
-    var businessOptions = window.AppData.getAllBusinesses().map(function (business) {
-      return { id: business.id, name: business.name };
-    });
-    var selectedIds = favorites.map(function (business) {
-      return business.id;
-    });
-
-    // Escape "<" so the embedded JSON can never break out of the <script> tag.
-    var reportDataJson = JSON.stringify({
-      trends: trends || {},
-      options: businessOptions,
-      selected: selectedIds,
-      pdf: pdfBundle,
-    }).replace(/</g, "\\u003c");
-
+  function buildReportInnerHtml(favorites, recommendations) {
     return (
-      "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>" +
-      "<meta name='viewport' content='width=device-width, initial-scale=1'>" +
-      "<title>My Report — Local Lift</title>" +
-      styles +
-      "</head><body>" +
-      "<button class='fab no-print' type='button' id='download-pdf'>📄 Download PDF Report</button>" +
-      "<div class='sheet'><div class='sheet__inner'>" +
-      masthead +
-      "<h1 class='report-title'>My Report</h1>" +
-      "<div class='reminder'><span class='reminder__icon' aria-hidden='true'>✅</span>" +
-      "<div>Your <b>Favorited Businesses</b>, <b>Recommended for You</b> picks, and the " +
-      "<b>Compare Your Favorites</b> chart are added to your PDF report automatically. " +
-      "Use the tool below to add a rating-trends comparison, then press " +
-      "<strong>Download PDF Report</strong>.</div></div>" +
-      "<section class='section'>" +
-      buildReportSectionHead("📈", "Compare Businesses") +
-      "<p class='cmp-intro'>Add businesses to compare how their average rating has " +
-      "changed over time. Your favorites are plotted to start.</p>" +
-      "<div class='cmp-controls'>" +
-      "<label for='cmp-select'>Add business:</label>" +
-      "<select id='cmp-select'></select>" +
-      "<button type='button' id='cmp-add'>Add to Chart</button>" +
+      '<div class="report-sheet"><div class="report-sheet__inner">' +
+      buildReportMasthead() +
+      '<div class="report-topbar">' +
+      '<h1 class="report-title">My Report</h1>' +
+      '<button type="button" id="report-download" class="report-download no-print">' +
+      '<span aria-hidden="true">📄</span> Download PDF Report</button>' +
       "</div>" +
-      "<div id='cmp-chips' class='cmp-chips'></div>" +
-      "<div class='panel'><div id='cmp-legend' class='legend'></div><div id='cmp-chart'></div></div>" +
+      '<div class="report-reminder no-print">' +
+      '<span class="report-reminder__icon" aria-hidden="true">✅</span>' +
+      "<div>This report includes your <b>Favorited Businesses</b>, <b>Recommended for You</b> " +
+      "picks, the <b>Compare Your Favorites</b> chart, and the rating-trend comparison below. " +
+      "Press <strong>Download PDF Report</strong> to save or print it as a PDF.</div></div>" +
+      buildReportFavoritesSection(favorites) +
+      buildReportRecommendationsSection(favorites, recommendations) +
+      buildReportCompareBarSection(favorites) +
+      '<section class="section">' +
+      buildReportSectionHead("📈", "Rating Trends Over Time") +
+      '<p class="cmp-intro no-print">Add businesses to compare how their average rating has ' +
+      "changed over time. Your favorites are plotted to start.</p>" +
+      '<div class="cmp-controls no-print">' +
+      '<label for="cmp-select">Add business:</label>' +
+      '<select id="cmp-select"></select>' +
+      '<button type="button" id="cmp-add" class="cmp-add">Add to Chart</button>' +
+      "</div>" +
+      '<div id="cmp-chips" class="cmp-chips no-print"></div>' +
+      '<div class="panel"><div id="cmp-legend" class="legend"></div>' +
+      '<div id="cmp-chart"><p class="cmp-empty">Loading rating trends…</p></div></div>' +
       "</section>" +
-      "</div></div>" +
-      "<script>window.__REPORT__=" + reportDataJson + ";</scr" + "ipt>" +
-      "<script>" + buildReportScript() + "</scr" + "ipt>" +
-      "</body></html>"
+      '<footer class="report-footer"><span>Generated by <strong>Local Lift</strong></span>' +
+      "<span>FBLA Coding &amp; Programming · 2025–2026</span></footer>" +
+      "</div></div>"
     );
   }
 
   /**
-   * Open the interactive "My Report" page in a new tab. The page lets the user
-   * build a rating-trends comparison and then download the print-ready PDF.
+   * Open the My Report view (route "#/report"). Renders the report immediately,
+   * then loads every review to populate the interactive rating-trends chart.
    * @returns {void}
    */
-  function openReportWindow() {
+  function openReportPage() {
     var favorites = getFavoriteBusinesses();
     if (favorites.length === 0) {
-      window.AppUI.showToast("Add some favorites first.", "error");
+      window.AppUI.showToast("Add some favorites to build your report.", "error");
+      window.location.hash = "#/favorites";
       return;
     }
-    var reportWindow = window.open("", "_blank");
-    if (!reportWindow) {
-      window.AppUI.showToast("Allow pop-ups to open your report.", "error");
-      return;
-    }
-    reportWindow.document.write(
-      "<!DOCTYPE html><body style='font-family:Arial;padding:48px;color:#33597d'>" +
-      "Opening your report…</body>"
-    );
-    reportWindow.document.close();
-
     var recommendations = window.AppData.recommendBusinesses(favorites, 4);
+    window.AppUI.renderReportPage(buildReportInnerHtml(favorites, recommendations));
+
     window.AppStorage.getAllReviews()
       .catch(function () {
         return [];
       })
       .then(function (allReviews) {
         var trends = buildRatingTrends(allReviews);
-        var html = buildReportPageHtml(favorites, recommendations, trends);
-        reportWindow.document.open();
-        reportWindow.document.write(html);
-        reportWindow.document.close();
-        reportWindow.focus();
+        var options = window.AppData.getAllBusinesses().map(function (business) {
+          return { id: business.id, name: business.name };
+        });
+        var selected = favorites.map(function (business) {
+          return business.id;
+        });
+        window.AppUI.initReportTrends({
+          trends: trends,
+          options: options,
+          selected: selected,
+        });
       });
   }
 
@@ -821,6 +477,8 @@
       openBusinessPage(decodeURIComponent(hash.slice("#/business/".length)));
     } else if (hash === "#/favorites") {
       openFavoritesPage();
+    } else if (hash === "#/report") {
+      openReportPage();
     } else {
       window.AppUI.showView("home");
       refreshResults();
@@ -975,12 +633,11 @@
   }
 
   /**
-   * Open the interactive report (with the compare dropdown and rating-trend
-   * chart). The user clicks "Download PDF Report" inside to save as PDF.
+   * Navigate to the My Report view (route "#/report").
    * @returns {void}
    */
   function handlePdfReport() {
-    openReportWindow();
+    window.location.hash = "#/report";
   }
 
   /**
