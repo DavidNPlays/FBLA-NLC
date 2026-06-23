@@ -38,6 +38,19 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid;
     }
 
+    // Chat ratings: signed-in users may submit a 1–5 star rating of the
+    // assistant, stamped with their own uid. Feedback is write-only from the
+    // client (only the project owner reads it in the Firebase console).
+    match /chatRatings/{ratingId} {
+      allow read: if false;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update, delete: if false;
+    }
+
     // Deal claims: each user may read and create only their own claims, at the
     // document id "{uid}_{businessId}". A claim is immutable once created.
     match /dealClaims/{claimId} {

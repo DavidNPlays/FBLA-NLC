@@ -364,6 +364,23 @@
   }
 
   /**
+   * Save the chosen rating to the database (best-effort). Saving requires a
+   * signed-in user, so when no one is signed in or the database is unavailable
+   * this quietly does nothing — the on-screen thank-you note still appears.
+   * @param {number} rating The selected rating (1–5).
+   * @returns {void}
+   */
+  function persistRating(rating) {
+    var isSignedIn = window.AppAuth && window.AppAuth.getCurrentUser();
+    if (!window.AppStorage || !isSignedIn) {
+      return;
+    }
+    window.AppStorage.addChatRating(rating).catch(function () {
+      // Feedback is non-critical; ignore any write failure.
+    });
+  }
+
+  /**
    * Record the chosen rating, lock the stars, and show a thank-you note.
    * @param {number} rating The selected rating (1–5).
    * @returns {void}
@@ -371,6 +388,7 @@
   function submitRating(rating) {
     selectedRating = rating;
     paintStars(rating);
+    persistRating(rating);
     var starButtons = elements.stars.querySelectorAll(".chatbot__star");
     starButtons.forEach(function (starButton) {
       starButton.disabled = true;

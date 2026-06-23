@@ -33,14 +33,15 @@
     <!-- ===================== Top navigation (near-black) ===================== -->
     <header class="site-header">
       <div class="site-header__inner">
-        <a class="brand" href="#/" aria-label="Local Lift home">
-          <span class="wordmark brand__name">
-            <span class="wordmark__accent">Local</span> Lift
-          </span>
-        </a>
+        <div class="header-left">
+          <a class="brand" href="#/" aria-label="Local Lift home">
+            <span class="wordmark brand__name">
+              <span class="wordmark__accent">Local</span> Lift
+            </span>
+          </a>
+        </div>
 
         <div class="header-actions">
-          <span class="location-tag eyebrow">Lake Forest, IL</span>
           <nav class="nav-links" aria-label="Primary">
             <button id="help-button" class="button button--nav button--small" type="button" aria-label="How to use this app">
               ? Help
@@ -263,7 +264,7 @@
       <!-- Small in-chat popup offering to end the conversation -->
       <div id="chatbot-endprompt" class="chatbot__endprompt" role="alert" hidden>
         <button id="chatbot-endchat" class="chatbot__endchat" type="button">
-          Thank you for everything! (Chat Ends)
+          End Chat
         </button>
       </div>
 

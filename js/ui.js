@@ -178,7 +178,7 @@
       '" aria-label="' +
       (isBookmarked ? "Remove bookmark" : "Add bookmark") +
       '" title="Save to favorites">' +
-      (isBookmarked ? "★" : "☆") +
+      (isBookmarked ? "♥" : "♡") +
       "</button>";
 
     if (business.image) {
@@ -301,9 +301,9 @@
       var icon = button.querySelector("[data-bookmark-icon]");
       var label = button.querySelector("[data-bookmark-label]");
       if (icon) {
-        icon.textContent = isBookmarked ? "★" : "☆";
+        icon.textContent = isBookmarked ? "♥" : "♡";
       } else {
-        button.textContent = isBookmarked ? "★" : "☆";
+        button.textContent = isBookmarked ? "♥" : "♡";
       }
       if (label) {
         label.textContent = isBookmarked ? "Saved" : "Save";
@@ -476,7 +476,7 @@
       '" aria-label="' +
       (isBookmarked ? "Remove bookmark" : "Add bookmark") +
       '"><span data-bookmark-icon aria-hidden="true">' +
-      (isBookmarked ? "★" : "☆") +
+      (isBookmarked ? "♥" : "♡") +
       '</span><span data-bookmark-label>' +
       (isBookmarked ? "Saved" : "Save") +
       "</span></button>"
@@ -767,7 +767,7 @@
     var listHtml;
     if (!favorites || favorites.length === 0) {
       listHtml =
-        '<p class="favorites-empty">You have no favorites yet. Tap the ☆ on any ' +
+        '<p class="favorites-empty">You have no favorites yet. Tap the ♡ on any ' +
         "business to save it here.</p>";
     } else {
       listHtml =
@@ -785,11 +785,6 @@
       '<div class="favorites-header__heading">' +
       '<h1 class="page-title">Your favorites</h1>' +
       '<p class="page-subtitle">Saved spots and tailored recommendations.</p>' +
-      "</div>" +
-      '<div class="favorites-header__actions">' +
-      '<button class="button button--secondary button--small" type="button" data-action="print-report">Print</button>' +
-      '<button class="button button--secondary button--small" type="button" data-action="export-report">Export</button>' +
-      '<button class="button button--primary button--small" type="button" data-action="pdf-report"><span aria-hidden="true">📄</span><span>PDF Report</span></button>' +
       "</div>" +
       "</div>" +
       listHtml +
@@ -986,7 +981,7 @@
       }
     });
 
-    // Delegated clicks on the favorites page (remove favorite, report actions).
+    // Delegated clicks on the favorites page (open a business, remove favorite).
     elements.favoritesPage.addEventListener("click", function (event) {
       var trigger = event.target.closest("[data-action]");
       if (!trigger) {
@@ -999,12 +994,6 @@
         handlers.onToggleBookmark(trigger.getAttribute("data-business-id"));
       } else if (action === "remove-favorite" && handlers.onRemoveFavorite) {
         handlers.onRemoveFavorite(trigger.getAttribute("data-business-id"));
-      } else if (action === "export-report" && handlers.onExportFavorites) {
-        handlers.onExportFavorites();
-      } else if (action === "print-report" && handlers.onPrintFavorites) {
-        handlers.onPrintFavorites();
-      } else if (action === "pdf-report" && handlers.onPdfReport) {
-        handlers.onPdfReport();
       }
     });
 

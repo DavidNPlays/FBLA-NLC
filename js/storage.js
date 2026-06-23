@@ -108,6 +108,30 @@
   }
 
   /**
+   * Get every review across all businesses, used to chart each business's
+   * cumulative rating trend in the report. Public read is allowed on reviews.
+   * @returns {Promise<Array<Object>>} Reviews as {businessId, rating, createdAt}.
+   */
+  function getAllReviews() {
+    if (!db) {
+      return Promise.resolve([]);
+    }
+    return db
+      .collection("reviews")
+      .get()
+      .then(function (snapshot) {
+        return snapshot.docs.map(function (doc) {
+          var reviewData = doc.data();
+          return {
+            businessId: reviewData.businessId,
+            rating: reviewData.rating,
+            createdAt: toDate(reviewData.createdAt),
+          };
+        });
+      });
+  }
+
+  /**
    * Aggregate every review into per-business rating totals.
    * @returns {Promise<Object<string, {sum: number, count: number}>>} Stats by id.
    */
@@ -237,6 +261,31 @@
   }
 
   /**
+   * Save a 1–5 star rating of the chatbot assistant. Requires the user to be
+   * signed in; the record is stamped with their uid so the security rules can
+   * verify ownership.
+   * @param {number} rating The chosen rating from 1 to 5.
+   * @returns {Promise<Object>} Resolves with the new rating's document reference.
+   */
+  function addChatRating(rating) {
+    if (!db) {
+      return Promise.resolve(null);
+    }
+    var user;
+    try {
+      user = requireUser();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return db.collection("chatRatings").add({
+      userId: user.uid,
+      userName: user.displayName || "Anonymous",
+      rating: rating,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+
+  /**
    * Public storage module surface.
    * @namespace AppStorage
    */
@@ -244,10 +293,12 @@
     addReview: addReview,
     getReviewsForBusiness: getReviewsForBusiness,
     getReviewStats: getReviewStats,
+    getAllReviews: getAllReviews,
     addBookmark: addBookmark,
     removeBookmark: removeBookmark,
     getBookmarkIds: getBookmarkIds,
     claimDeal: claimDeal,
     getClaimedDealIds: getClaimedDealIds,
+    addChatRating: addChatRating,
   };
 })();
