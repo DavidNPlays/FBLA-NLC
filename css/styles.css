@@ -1855,7 +1855,7 @@ img {
   margin: 12px auto 0;
   background: #ffffff;
   border-radius: 6px;
-  box-shadow: 0 24px 60px rgba(40, 70, 110, 0.22);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
   overflow: hidden;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -1886,11 +1886,11 @@ img {
   font-weight: 800;
   letter-spacing: -0.01em;
   line-height: 1;
-  color: #2f4d6e;
+  color: #333333;
 }
 #view-report .brandmark__word i {
   font-style: italic;
-  color: #79a6cf;
+  color: #a7b3de;
 }
 
 .report-topbar {
@@ -1905,7 +1905,7 @@ img {
   font-size: 44px;
   font-weight: 800;
   letter-spacing: -0.015em;
-  color: #26384a;
+  color: #333333;
   margin: 0;
 }
 .report-download {
@@ -1916,11 +1916,11 @@ img {
   font-weight: 800;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(90deg, #4a86c5, #33597d);
+  background: rgba(0, 0, 0, 0.9);
   border: none;
   border-radius: 26px;
   padding: 13px 22px;
-  box-shadow: 0 12px 26px rgba(40, 70, 110, 0.32);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
 }
 .report-download:hover {
   filter: brightness(1.05);
@@ -1932,14 +1932,14 @@ img {
   align-items: flex-start;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid #d8e6f4;
-  border-left: 4px solid #4a86c5;
+  border-left: 4px solid #6a82d8;
   border-radius: 14px;
   padding: 15px 18px;
   margin: 0 0 26px;
-  box-shadow: 0 8px 22px rgba(40, 70, 110, 0.1);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
   font-size: 13.5px;
   line-height: 1.55;
-  color: #41566a;
+  color: #656464;
 }
 .report-reminder__icon {
   font-size: 18px;
@@ -1947,14 +1947,14 @@ img {
   flex: none;
 }
 .report-reminder strong {
-  color: #2f4d6e;
+  color: #333333;
 }
 .report-reminder b {
-  color: #33597d;
+  color: #6a82d8;
 }
 
 #view-report .section {
-  margin: 0 0 30px;
+  margin: 0 0 22px;
 }
 #view-report .section-head {
   display: flex;
@@ -1970,13 +1970,13 @@ img {
   flex: none;
   font-size: 19px;
   border-radius: 11px;
-  background: linear-gradient(140deg, #e3f0fb, #cfe2f4);
-  box-shadow: 0 4px 12px rgba(40, 70, 110, 0.12);
+  background: linear-gradient(140deg, #e2e6f9, #d1d9f7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 #view-report .section-head__title {
   font-size: 21px;
   font-weight: 800;
-  color: #2f4d6e;
+  color: #333333;
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -1990,7 +1990,7 @@ img {
 #view-report .pgrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 #view-report .prec {
   display: flex;
@@ -2004,8 +2004,8 @@ img {
   align-self: flex-start;
   font-size: 11px;
   font-weight: 700;
-  color: #5a76b8;
-  background: #eef2fd;
+  color: #6a82d8;
+  background: #eef0fb;
   border-radius: 20px;
   padding: 5px 12px;
 }
@@ -2015,12 +2015,12 @@ img {
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 10px 26px rgba(40, 70, 110, 0.13);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.13);
   border: 1px solid #eaf1f8;
 }
 #view-report .pcard__media {
   position: relative;
-  height: 138px;
+  height: 104px;
   background: linear-gradient(135deg, #81a2ff, #e9edf9);
 }
 #view-report .pcard__media img {
@@ -2041,12 +2041,12 @@ img {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 13px 16px 16px;
+  padding: 12px 15px 13px;
 }
 #view-report .pcard__name {
   font-size: 17px;
   font-weight: 800;
-  color: #2c3e50;
+  color: #333333;
   margin: 0;
 }
 #view-report .pcard__meta {
@@ -2062,12 +2062,12 @@ img {
   padding: 4px 11px;
   border-radius: 20px;
   background: #d1d9f7;
-  color: #46506e;
+  color: #515151;
   font-size: 11px;
   font-weight: 700;
 }
 #view-report .pprice {
-  color: #9aa6b4;
+  color: #a4a1a1;
   font-size: 12.5px;
   font-weight: 700;
 }
@@ -2077,7 +2077,7 @@ img {
   gap: 8px;
   margin-top: 11px;
   font-size: 12.5px;
-  color: #5a6b7d;
+  color: #555555;
   font-weight: 700;
 }
 #view-report .pstars {
@@ -2103,7 +2103,7 @@ img {
   margin: 11px 0 0;
   font-size: 13px;
   line-height: 1.5;
-  color: #5f6c79;
+  color: #656464;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -2116,7 +2116,7 @@ img {
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: #5d7187;
+  color: #6a82d8;
 }
 #view-report .pcard__deal .ticket {
   font-size: 14px;
@@ -2125,16 +2125,16 @@ img {
   font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #2f6f4f;
-  background: #e4f5ec;
-  border: 1px dashed #9bd3b4;
+  color: #4d5fb0;
+  background: #eef0fb;
+  border: 1px dashed #b9c2ec;
   border-radius: 7px;
   padding: 3px 9px;
   font-size: 12px;
 }
 #view-report .report-empty {
   font-size: 13.5px;
-  color: #5d7187;
+  color: #656464;
   background: rgba(255, 255, 255, 0.86);
   border-radius: 12px;
   padding: 14px 16px;
@@ -2145,7 +2145,7 @@ img {
   border-radius: 14px;
   padding: 18px 20px;
   border: 1px solid #eaf1f8;
-  box-shadow: 0 10px 26px rgba(40, 70, 110, 0.13);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.13);
 }
 #view-report .bar-row {
   display: grid;
@@ -2157,14 +2157,14 @@ img {
 #view-report .bar-label {
   font-size: 12.5px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 #view-report .bar-track {
   height: 20px;
-  background: #e7eef6;
+  background: #eceef5;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -2172,17 +2172,17 @@ img {
   height: 100%;
   min-width: 3px;
   border-radius: 10px;
-  background: linear-gradient(90deg, #9cc1e2, #3a5d80);
+  background: linear-gradient(90deg, #a7b3de, #6a82d8);
 }
 #view-report .bar-val {
   font-size: 12.5px;
   font-weight: 800;
-  color: #33597d;
+  color: #6a82d8;
   text-align: right;
 }
 #view-report .panel__cap {
   font-size: 11px;
-  color: #7c8ea0;
+  color: #a4a1a1;
   margin-top: 12px;
 }
 
@@ -2199,7 +2199,7 @@ img {
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
 }
 #view-report .legend__swatch {
   width: 16px;
@@ -2209,13 +2209,13 @@ img {
 }
 #view-report .cmp-empty {
   font-size: 13px;
-  color: #7c8ea0;
+  color: #a4a1a1;
   text-align: center;
   padding: 28px 0;
 }
 #view-report .cmp-intro {
   font-size: 13.5px;
-  color: #4f6072;
+  color: #656464;
   margin: 0 0 14px;
 }
 #view-report .cmp-controls {
@@ -2228,16 +2228,16 @@ img {
 #view-report .cmp-controls label {
   font-size: 13px;
   font-weight: 700;
-  color: #33597d;
+  color: #6a82d8;
 }
 #view-report .cmp-controls select {
   font: inherit;
   font-size: 13px;
   padding: 9px 12px;
-  border: 1.5px solid #bcd0e6;
+  border: 1.5px solid #d1d9f7;
   border-radius: 10px;
   background: #fff;
-  color: #2c3e50;
+  color: #333333;
   min-width: 220px;
 }
 #view-report .cmp-add {
@@ -2246,13 +2246,13 @@ img {
   font-weight: 700;
   color: #fff;
   cursor: pointer;
-  background: #4a86c5;
+  background: #6a82d8;
   border: none;
   border-radius: 10px;
   padding: 10px 16px;
 }
 #view-report .cmp-add:hover {
-  background: #3a73b0;
+  background: #5870c8;
 }
 #view-report .cmp-chips {
   display: flex;
@@ -2286,7 +2286,7 @@ img {
   margin-top: 28px;
   padding-top: 16px;
   border-top: 1px solid #e2e9f1;
-  color: #7c8ea0;
+  color: #a4a1a1;
   font-size: 11.5px;
   display: flex;
   justify-content: space-between;
@@ -2337,6 +2337,12 @@ img {
   #view-report .prec,
   #view-report .panel {
     break-inside: avoid;
+  }
+  /* Only with >6 favorites (see buildReportRecommendationsSection) does the
+     recommendations section start on a fresh page; otherwise sections flow
+     together so the page fills with no empty space. */
+  #view-report .section--page-break {
+    break-before: page;
   }
   @page {
     size: letter;

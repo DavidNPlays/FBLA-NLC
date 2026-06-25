@@ -165,7 +165,7 @@
     return (
       '<div class="masthead"><span class="brandmark">' +
       '<svg class="brandmark__icon" viewBox="0 0 64 58" role="img" aria-label="Local Lift logo">' +
-      '<g fill="none" stroke="#2f4d6e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
+      '<g fill="none" stroke="#333333" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
       '<line x1="4" y1="53" x2="60" y2="53"></line>' +
       '<path d="M10 53 V12 q0-3 3-3 h8 q3 0 3 3 V53"></path>' +
       '<line x1="13.5" y1="17" x2="20.5" y2="17" stroke-width="1.9"></line>' +
@@ -302,8 +302,12 @@
         .join("");
       inner = '<div class="pgrid">' + cards + "</div>";
     }
+    // With more than 6 favorites the favorites grid is long enough that the
+    // recommendations should start on their own printed page; at 6 or fewer
+    // both sections flow together so the page fills without a gap.
+    var breakClass = favorites.length > 6 ? " section--page-break" : "";
     return (
-      '<section class="section">' +
+      '<section class="section' + breakClass + '">' +
       buildReportSectionHead("✨", "Recommended for You") +
       inner +
       "</section>"

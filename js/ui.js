@@ -1015,8 +1015,8 @@
 
   // One line color per plotted business on the rating-trends chart.
   var REPORT_LINE_COLORS = [
-    "#1ec8e0", "#ec4899", "#7c5cff", "#f5a623",
-    "#34d399", "#ef4444", "#3a5d80", "#b07cff",
+    "#6a82d8", "#ec4899", "#1ec8e0", "#f5a623",
+    "#34d399", "#ef4444", "#7c5cff", "#b07cff",
   ];
   var MILLISECONDS_PER_DAY = 86400000;
 
@@ -1120,7 +1120,7 @@
         '" y2="' + gridY + '" stroke="#e3ebf3"/>';
       svg +=
         '<text x="' + (leftPad - 8) + '" y="' + (gridY + 4) +
-        '" text-anchor="end" font-size="11" fill="#7c8ea0">' + rating + "</text>";
+        '" text-anchor="end" font-size="11" fill="#a4a1a1">' + rating + "</text>";
     }
     var tickCount = 4;
     var tick;
@@ -1132,16 +1132,16 @@
         (topPad + plotHeight) + '" stroke="#f0f4f9"/>';
       svg +=
         '<text x="' + tickX + '" y="' + (height - bottomPad + 18) +
-        '" text-anchor="middle" font-size="11" fill="#7c8ea0">' +
+        '" text-anchor="middle" font-size="11" fill="#a4a1a1">' +
         reportFormatDate(tickTime) + "</text>";
     }
     svg +=
       '<text x="' + (leftPad + plotWidth / 2) + '" y="' + (height - 4) +
-      '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Review Date</text>';
+      '" text-anchor="middle" font-size="12" fill="#6a82d8" font-weight="700">Review Date</text>';
     svg +=
       '<text transform="rotate(-90 14 ' + (topPad + plotHeight / 2) + ')" x="14" y="' +
       (topPad + plotHeight / 2) +
-      '" text-anchor="middle" font-size="12" fill="#33597d" font-weight="700">Average Rating</text>';
+      '" text-anchor="middle" font-size="12" fill="#6a82d8" font-weight="700">Average Rating</text>';
 
     plottedIds.forEach(function (businessId, index) {
       var trend = reportTrends[businessId];
@@ -1203,7 +1203,7 @@
 
       var nameLabel = document.createElement("span");
       nameLabel.textContent = trend.name;
-      nameLabel.style.color = "#2c3e50";
+      nameLabel.style.color = "#333333";
 
       var removeButton = document.createElement("button");
       removeButton.type = "button";
